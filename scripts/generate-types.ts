@@ -27,7 +27,8 @@ console.log(`Gerando tipos TypeScript do Supabase (${target})...`);
 const types = execFileSync(
   'supabase',
   ['gen', 'types', 'typescript', target, '--schema', 'public'],
-  { encoding: 'utf8' },
+  // shell: true para resolver shims .cmd do pnpm no Windows.
+  { encoding: 'utf8', shell: true },
 );
 
 writeFileSync(OUTPUT, HEADER + types, 'utf8');
