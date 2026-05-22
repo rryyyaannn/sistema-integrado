@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+/* Cores da marca — manter em sincronia com packages/ui-tokens/src/colors.ts.
+   As cores neutras usam a paleta `neutral` padrao do Tailwind. */
+@theme {
+  --color-brand-50: #eef4fb;
+  --color-brand-100: #d6e4f5;
+  --color-brand-200: #aecbe9;
+  --color-brand-300: #7da8d8;
+  --color-brand-400: #4d83c2;
+  --color-brand-500: #2e63a3;
+  --color-brand-600: #244e84;
+  --color-brand-700: #1d3e69;
+  --color-brand-800: #172f50;
+  --color-brand-900: #0f1f36;
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background-color: var(--color-neutral-50);
+  color: var(--color-neutral-900);
+  -webkit-font-smoothing: antialiased;
+}
