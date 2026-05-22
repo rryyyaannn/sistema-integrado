@@ -1,0 +1,61 @@
+# Configuracao do Supabase CLI — Sistema Integrado
+# Docs: https://supabase.com/docs/guides/cli/config
+#
+# Se o `supabase start` reclamar de chaves desconhecidas (o formato muda entre
+# versoes do CLI), rode `supabase init` numa pasta limpa para gerar um
+# config.toml atualizado e copie de volta o bloco [auth.hook.custom_access_token].
+
+project_id = "sistema-integrado"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+# Alinhar com a versao do projeto na nuvem (Postgres 17 nos projetos novos).
+major_version = 17
+
+[db.pooler]
+enabled = false
+
+[studio]
+enabled = true
+port = 54323
+
+[inbucket]
+enabled = true
+port = 54324
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+
+[auth.email]
+enable_signup = true
+enable_confirmations = false
+
+# Hook que injeta `tenant_id` e `user_role` no JWT. Implementado na
+# migration 20260608000000_auth_hook.sql. Na nuvem, ainda e preciso ativa-lo
+# em Authentication > Hooks no painel do Supabase (ver README).
+[auth.hook.custom_access_token]
+enabled = true
+uri = "pg-functions://postgres/public/custom_access_token_hook"
+
+[edge_runtime]
+enabled = true
+
+[analytics]
+enabled = false
