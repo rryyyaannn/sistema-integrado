@@ -1,0 +1,45 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# build output
+dist/
+build/
+out/
+.next/
+.expo/
+*.tsbuildinfo
+
+# environment
+.env
+.env.*
+!.env.example
+
+# supabase (local state, never commit)
+supabase/.branches/
+supabase/.temp/
+supabase/.env
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# coverage / cache
+coverage/
+.turbo/
+.vercel/
+
+# native build artifacts (Expo prebuild)
+apps/mobile/android/
+apps/mobile/ios/
+*.keystore
+!debug.keystore
