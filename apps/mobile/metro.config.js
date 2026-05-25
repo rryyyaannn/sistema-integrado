@@ -9,8 +9,10 @@ const workspaceRoot = path.resolve(projectRoot, '../..');
 const config = getDefaultConfig(projectRoot);
 
 // Monorepo: o Metro precisa observar a raiz e resolver node_modules
-// tanto do app quanto da raiz do workspace.
-config.watchFolders = [workspaceRoot];
+// tanto do app quanto da raiz do workspace. Preserva os defaults do Expo
+// e adiciona o workspaceRoot (evita o aviso do expo-doctor sobre
+// watchFolders sobrescritos).
+config.watchFolders = [...(config.watchFolders ?? []), workspaceRoot];
 config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, 'node_modules'),
   path.resolve(workspaceRoot, 'node_modules'),
