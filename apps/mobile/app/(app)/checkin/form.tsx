@@ -14,6 +14,13 @@ type LoadState =
   | { status: 'not_found' }
   | { status: 'ready'; post: PostByToken };
 
+const SERVICE_TYPE_LABEL: Record<string, string> = {
+  portaria: 'Portaria',
+  servicos_gerais: 'Servicos gerais',
+  tecnico: 'Tecnico',
+  monitoramento: 'Monitoramento',
+};
+
 export default function CheckinFormScreen() {
   const { token } = useLocalSearchParams<{ token: string }>();
   const session = useSession();
@@ -37,7 +44,7 @@ export default function CheckinFormScreen() {
 
   if (load.status === 'loading' || session.status === 'loading') {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-brand-800">
+      <SafeAreaView className="flex-1 items-center justify-center bg-brand-900">
         <ActivityIndicator color="#ffffff" />
       </SafeAreaView>
     );
@@ -45,15 +52,15 @@ export default function CheckinFormScreen() {
 
   if (load.status === 'not_found') {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center gap-4 bg-brand-800 p-8">
+      <SafeAreaView className="flex-1 items-center justify-center gap-4 bg-brand-900 p-8">
         <Text className="text-center text-base text-white">
           QR Code nao reconhecido. Verifique se o posto esta cadastrado.
         </Text>
         <Pressable
           onPress={() => router.replace('/(app)')}
-          className="rounded-md bg-brand-500 px-4 py-3 active:opacity-80"
+          className="rounded-md bg-white px-5 py-3 active:opacity-80"
         >
-          <Text className="text-white">Voltar</Text>
+          <Text className="text-sm font-bold tracking-tight text-brand-900">Voltar</Text>
         </Pressable>
       </SafeAreaView>
     );
@@ -68,11 +75,7 @@ export default function CheckinFormScreen() {
 
   const confirm = async () => {
     setSubmitting(true);
-    const result = await submitCheckin({
-      post,
-      userId,
-      purpose: 'entry',
-    });
+    const result = await submitCheckin({ post, userId, purpose: 'entry' });
     setSubmitting(false);
     if (!result.ok) {
       Alert.alert('Erro ao registrar', result.error);
@@ -80,25 +83,42 @@ export default function CheckinFormScreen() {
     }
     const title = result.queued ? 'Check-in enfileirado' : 'Check-in registrado';
     const message = result.queued
-      ? `Sem conexao agora. Vai sincronizar automaticamente em ${post.name}.`
+      ? `Sem conexao agora. Vai sincronizar automaticamente quando a rede voltar (${post.name}).`
       : `Bom plantao em ${post.name}.`;
     Alert.alert(title, message, [{ text: 'OK', onPress: () => router.replace('/(app)') }]);
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-brand-800">
-      <View className="flex-1 gap-6 p-6">
+    <SafeAreaView className="flex-1 bg-brand-900">
+      <View className="flex-1 p-6">
         <View className="gap-1">
-          <Text className="text-sm text-brand-200">Posto identificado</Text>
-          <Text className="text-2xl font-bold text-white">{post.name}</Text>
-          <Text className="text-sm text-brand-100">{post.client_name}</Text>
-          {post.address ? <Text className="text-xs text-brand-200">{post.address}</Text> : null}
+          <Text className="text-[10px] font-semibold uppercase tracking-[3px] text-steel-400">
+            Posto identificado
+          </Text>
+          <Text className="text-3xl font-bold tracking-tight text-white">{post.name}</Text>
+          <Text className="mt-1 text-sm text-steel-300">{post.client_name}</Text>
+          {post.address ? (
+            <Text className="mt-0.5 text-xs uppercase tracking-wider text-steel-500">
+              {post.address}
+            </Text>
+          ) : null}
+          <View className="mt-3 self-start rounded-sm border border-steel-700 bg-brand-800 px-2 py-0.5">
+            <Text className="text-[10px] font-semibold uppercase tracking-[2px] text-steel-300">
+              {SERVICE_TYPE_LABEL[post.service_type] ?? post.service_type}
+            </Text>
+          </View>
         </View>
 
-        <View className="rounded-xl bg-white/10 p-5">
-          <Text className="text-sm font-medium text-white">Confirmar entrada</Text>
-          <Text className="mt-1 text-xs text-brand-100">
-            Voce vai registrar inicio de plantao neste posto.
+        <View className="mt-8 gap-4 rounded-xl border border-steel-700/40 bg-brand-800/40 p-5">
+          <View>
+            <Text className="text-[10px] font-semibold uppercase tracking-[3px] text-steel-400">
+              Acao
+            </Text>
+            <Text className="mt-1 text-base font-semibold text-white">Confirmar entrada</Text>
+          </View>
+          <Text className="text-sm leading-relaxed text-steel-300">
+            Voce vai registrar inicio de plantao neste posto. A acao gera um registro imutavel com
+            horario e localizacao.
           </Text>
         </View>
 
@@ -107,17 +127,24 @@ export default function CheckinFormScreen() {
             onPress={confirm}
             disabled={submitting}
             className={`h-14 items-center justify-center rounded-md ${
-              submitting ? 'bg-brand-700' : 'bg-white'
+              submitting ? 'bg-steel-700' : 'bg-white'
             }`}
           >
             {submitting ? (
-              <ActivityIndicator color="#ffffff" />
+              <ActivityIndicator color="#0e1825" />
             ) : (
-              <Text className="text-base font-semibold text-brand-800">Confirmar check-in</Text>
+              <Text className="text-base font-bold tracking-tight text-brand-900">
+                Confirmar check-in
+              </Text>
             )}
           </Pressable>
-          <Pressable onPress={() => router.back()} className="py-3 active:opacity-80">
-            <Text className="text-center text-sm text-brand-200">Cancelar</Text>
+          <Pressable
+            onPress={() => router.back()}
+            className="h-12 items-center justify-center active:opacity-60"
+          >
+            <Text className="text-sm font-semibold uppercase tracking-[2px] text-steel-400">
+              Cancelar
+            </Text>
           </Pressable>
         </View>
       </View>

@@ -8,8 +8,8 @@ import { QRCodeSVG } from 'qrcode.react';
  */
 export function QrCodeView({ token }: { token: string }) {
   return (
-    <div className="flex justify-center rounded-md border border-neutral-200 bg-white p-6">
-      <QRCodeSVG value={token} size={256} level="M" />
+    <div className="flex justify-center rounded-md border border-steel-200 bg-white p-6">
+      <QRCodeSVG value={token} size={256} level="M" bgColor="#ffffff" fgColor="#0e1825" />
     </div>
   );
 }

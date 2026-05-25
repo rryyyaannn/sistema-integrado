@@ -8,7 +8,7 @@ export function Label({ className, ...props }: LabelProps) {
     // biome-ignore lint/a11y/noLabelWithoutControl: wrapper generico — htmlFor e definido por quem usa.
     <label
       className={cn(
-        'text-sm font-medium leading-none text-neutral-800 peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
+        'text-xs font-medium uppercase tracking-wider text-steel-600 peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
         className,
       )}
       {...props}

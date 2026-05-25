@@ -16,7 +16,13 @@
       "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#2e63a3"
-      }
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "plugins": [
       "expo-router",
@@ -29,6 +35,21 @@
     ],
     "experiments": {
       "typedRoutes": false
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "a6df1b19-6932-4b7b-a965-8a38204d3b6d"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/a6df1b19-6932-4b7b-a965-8a38204d3b6d"
+    },
+    "ios": {}
   }
 }

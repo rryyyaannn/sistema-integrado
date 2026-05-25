@@ -19,7 +19,6 @@ export default function LoginScreen() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Ja autenticado: vai direto pra home interna.
   if (session.status === 'authenticated') {
     return <Redirect href="/(app)" />;
   }
@@ -40,63 +39,89 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-brand-800">
+    <SafeAreaView className="flex-1 bg-brand-900">
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View className="flex-1 items-center justify-center gap-6 p-8">
-          <View className="items-center gap-2">
-            <Text className="text-sm font-medium text-brand-200">Sistema Integrado</Text>
-            <Text className="text-2xl font-bold text-white">Identificar-se</Text>
-            <Text className="text-sm text-brand-100">Use sua matricula e PIN do plantao</Text>
+        <View className="flex-1 justify-between p-8">
+          <View className="gap-2 pt-6">
+            <Text className="text-[10px] font-semibold uppercase tracking-[4px] text-steel-400">
+              Sistema Integrado
+            </Text>
+            <Text className="text-2xl font-bold tracking-tight text-white">Identificar-se</Text>
+            <Text className="text-sm text-steel-300">
+              Inicio de plantao — informe sua matricula e PIN.
+            </Text>
           </View>
 
-          <View className="w-full max-w-sm gap-4">
+          <View className="gap-4">
             <View className="gap-1.5">
-              <Text className="text-sm font-medium text-brand-100">Matricula</Text>
+              <Text className="text-[10px] font-semibold uppercase tracking-[2px] text-steel-400">
+                Matricula
+              </Text>
               <TextInput
-                className="h-12 rounded-md bg-white px-3 text-base text-neutral-900"
+                className="h-14 rounded-md border border-steel-700 bg-brand-800 px-4 text-lg font-medium text-white"
                 value={matricula}
                 onChangeText={setMatricula}
                 placeholder="P001"
-                placeholderTextColor="#a3a3a3"
+                placeholderTextColor="#5b6571"
                 autoCapitalize="characters"
                 autoCorrect={false}
                 editable={!pending}
+                selectionColor="#94a1b7"
               />
             </View>
 
             <View className="gap-1.5">
-              <Text className="text-sm font-medium text-brand-100">PIN</Text>
+              <Text className="text-[10px] font-semibold uppercase tracking-[2px] text-steel-400">
+                PIN
+              </Text>
               <TextInput
-                className="h-12 rounded-md bg-white px-3 text-base text-neutral-900"
+                className="h-14 rounded-md border border-steel-700 bg-brand-800 px-4 text-2xl tracking-[6px] font-medium text-white"
                 value={pin}
                 onChangeText={setPin}
-                placeholder="****"
-                placeholderTextColor="#a3a3a3"
+                placeholder="0000"
+                placeholderTextColor="#5b6571"
                 keyboardType="number-pad"
                 secureTextEntry
                 maxLength={10}
                 editable={!pending}
+                selectionColor="#94a1b7"
               />
             </View>
 
-            {error ? <Text className="text-sm text-red-300">{error}</Text> : null}
+            {error ? (
+              <View className="rounded-md border border-red-900/40 bg-red-950/40 px-3 py-2">
+                <Text className="text-sm text-red-300">{error}</Text>
+              </View>
+            ) : null}
 
             <Pressable
               onPress={submit}
               disabled={!canSubmit}
-              className={`h-12 items-center justify-center rounded-md ${
-                canSubmit ? 'bg-brand-500' : 'bg-brand-700'
+              className={`mt-2 h-14 items-center justify-center rounded-md ${
+                canSubmit ? 'bg-white' : 'bg-steel-700'
               }`}
             >
               {pending ? (
-                <ActivityIndicator color="#ffffff" />
+                <ActivityIndicator color="#0e1825" />
               ) : (
-                <Text className="text-base font-medium text-white">Entrar</Text>
+                <Text
+                  className={`text-base font-bold tracking-tight ${
+                    canSubmit ? 'text-brand-900' : 'text-steel-400'
+                  }`}
+                >
+                  Entrar
+                </Text>
               )}
             </Pressable>
+          </View>
+
+          <View className="items-center pb-2">
+            <Text className="text-[10px] uppercase tracking-[3px] text-steel-500">
+              Operacao auditada
+            </Text>
           </View>
         </View>
       </KeyboardAvoidingView>

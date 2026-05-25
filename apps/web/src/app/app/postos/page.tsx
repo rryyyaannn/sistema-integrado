@@ -22,14 +22,17 @@ export default async function PostosPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-neutral-900">Postos</h1>
-        <p className="text-sm text-neutral-500">
-          {posts.length} {posts.length === 1 ? 'posto' : 'postos'} cadastrados.
+      <div className="flex flex-col gap-1">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-steel-500">
+          Cadastro operacional
+        </p>
+        <h1 className="text-3xl font-bold tracking-tight text-brand-900">Postos</h1>
+        <p className="text-sm text-steel-600">
+          {posts.length} {posts.length === 1 ? 'posto cadastrado' : 'postos cadastrados'}.
         </p>
       </div>
 
-      <div className="rounded-lg border border-neutral-200 bg-white">
+      <div className="overflow-hidden rounded-lg border border-steel-200 bg-white shadow-sm shadow-brand-900/5">
         <Table>
           <TableHeader>
             <TableRow>
@@ -43,7 +46,7 @@ export default async function PostosPage() {
           <TableBody>
             {posts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-sm text-neutral-500">
+                <TableCell colSpan={5} className="py-10 text-center text-sm text-steel-500">
                   Nenhum posto cadastrado.
                 </TableCell>
               </TableRow>
@@ -51,22 +54,26 @@ export default async function PostosPage() {
               posts.map((post) => (
                 <TableRow key={post.id}>
                   <TableCell>
-                    <div className="font-medium text-neutral-900">{post.name}</div>
+                    <div className="font-semibold tracking-tight text-brand-900">{post.name}</div>
                     {post.address ? (
-                      <div className="text-xs text-neutral-500">{post.address}</div>
+                      <div className="mt-0.5 text-xs text-steel-500">{post.address}</div>
                     ) : null}
                   </TableCell>
-                  <TableCell className="text-sm text-neutral-700">{post.client_name}</TableCell>
-                  <TableCell className="text-sm text-neutral-700">
-                    {SERVICE_TYPE_LABEL[post.service_type] ?? post.service_type}
+                  <TableCell className="text-sm text-steel-700">{post.client_name}</TableCell>
+                  <TableCell>
+                    <span className="inline-flex items-center rounded-sm bg-steel-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-steel-700">
+                      {SERVICE_TYPE_LABEL[post.service_type] ?? post.service_type}
+                    </span>
                   </TableCell>
                   <TableCell>
                     {post.active ? (
-                      <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                      <span className="inline-flex items-center gap-1.5 rounded-sm bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-700">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                         Ativo
                       </span>
                     ) : (
-                      <span className="inline-flex items-center rounded-full bg-neutral-200 px-2 py-0.5 text-xs font-medium text-neutral-700">
+                      <span className="inline-flex items-center gap-1.5 rounded-sm bg-steel-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-steel-600">
+                        <span className="h-1.5 w-1.5 rounded-full bg-steel-400" />
                         Pausado
                       </span>
                     )}

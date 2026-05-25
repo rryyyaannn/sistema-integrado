@@ -1,24 +1,48 @@
 /**
  * Tokens de cor — fonte unica de verdade para web (Tailwind) e mobile
- * (NativeWind). A paleta foi escolhida para uso operacional: tons calmos,
- * alto contraste e boa legibilidade em tela exposta ao sol.
+ * (NativeWind). Paleta inspirada na identidade visual de empresas de
+ * portaria e zeladoria patrimonial (azul-grafite + aco/prata).
+ *
+ * Tons escolhidos para uso operacional: alto contraste, leitura em sol
+ * direto, sensacao de seriedade e autoridade (nao "startup-tech").
  */
 
-/** Azul-aco da marca — transmite confianca e seguranca. */
+/**
+ * Azul-grafite da marca — base institucional. Tons frios, escuros,
+ * autoridade. Use 800/900 para headers e superficies de comando;
+ * 50/100 para fundos claros; 500/600 para CTAs.
+ */
 export const brand = {
-  50: '#eef4fb',
-  100: '#d6e4f5',
-  200: '#aecbe9',
-  300: '#7da8d8',
-  400: '#4d83c2',
-  500: '#2e63a3',
-  600: '#244e84',
-  700: '#1d3e69',
-  800: '#172f50',
-  900: '#0f1f36',
+  50: '#f1f4f8',
+  100: '#dfe4ec',
+  200: '#bfc7d5',
+  300: '#94a1b7',
+  400: '#677893',
+  500: '#455a78',
+  600: '#344662',
+  700: '#28374c',
+  800: '#1a2a3d',
+  900: '#0e1825',
 } as const;
 
-/** Escala neutra para texto, fundos e bordas. */
+/**
+ * Aco/prata — secundario neutro frio. Use para divisores, badges
+ * de status secundario, fundos de cards em superficies escuras.
+ */
+export const steel = {
+  50: '#f6f7f9',
+  100: '#e8eaed',
+  200: '#cdd2d8',
+  300: '#a8b0ba',
+  400: '#7e8893',
+  500: '#5b6571',
+  600: '#475058',
+  700: '#353c44',
+  800: '#252a30',
+  900: '#14181c',
+} as const;
+
+/** Escala neutra para texto, fundos e bordas (cinzas quentes/terrosos). */
 export const neutral = {
   0: '#ffffff',
   50: '#f7f8fa',
@@ -35,7 +59,8 @@ export const neutral = {
 
 /**
  * Cores de severidade — espelham, na ordem, o enum `incident_severity`
- * do banco de dados (low, medium, high, critical).
+ * do banco de dados (low, medium, high, critical). Mantidas distintas
+ * da paleta institucional para nao competir com a marca.
  */
 export const severity = {
   low: '#5b8a3c',
@@ -49,9 +74,9 @@ export const semantic = {
   success: '#2e7d4f',
   warning: '#c98a1a',
   danger: '#c0392b',
-  info: '#2e63a3',
+  info: '#455a78',
 } as const;
 
-export const colors = { brand, neutral, severity, semantic } as const;
+export const colors = { brand, steel, neutral, severity, semantic } as const;
 
 export type SeverityLevel = keyof typeof severity;
