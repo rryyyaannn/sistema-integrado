@@ -22,11 +22,17 @@ on conflict (id) do nothing;
 -- --- 2. Usuarios --------------------------------------------------------------
 -- Inseridos em auth.users; o trigger handle_new_user materializa public.users
 -- a partir do raw_user_meta_data. Colunas de token omitidas de proposito
--- (usam o default '' do GoTrue).
+-- Inclui as colunas *_token como '' (string vazia, nao NULL): o GoTrue scaneia
+-- esses campos como string em Go e quebra com "Database error querying schema"
+-- se vier NULL. No Supabase Cloud o DEFAULT da coluna nao e aplicado quando
+-- omitida no insert, entao passamos explicito.
 insert into auth.users (
   instance_id, id, aud, role, email, encrypted_password,
   email_confirmed_at, created_at, updated_at,
-  raw_app_meta_data, raw_user_meta_data
+  raw_app_meta_data, raw_user_meta_data,
+  confirmation_token, recovery_token,
+  email_change_token_new, email_change_token_current,
+  email_change, phone_change, phone_change_token, reauthentication_token
 )
 values
   (
@@ -41,7 +47,8 @@ values
       'tenant_id', '11111111-1111-7111-8111-111111111111',
       'full_name', 'Ana Administradora',
       'role', 'admin'
-    )
+    ),
+    '', '', '', '', '', '', '', ''
   ),
   (
     '00000000-0000-0000-0000-000000000000',
@@ -55,7 +62,8 @@ values
       'tenant_id', '11111111-1111-7111-8111-111111111111',
       'full_name', 'Sergio Supervisor',
       'role', 'supervisor'
-    )
+    ),
+    '', '', '', '', '', '', '', ''
   ),
   (
     '00000000-0000-0000-0000-000000000000',
@@ -70,7 +78,8 @@ values
       'full_name', 'Carlos Porteiro',
       'role', 'field_worker',
       'employee_code', 'P001'
-    )
+    ),
+    '', '', '', '', '', '', '', ''
   ),
   (
     '00000000-0000-0000-0000-000000000000',
@@ -85,7 +94,8 @@ values
       'full_name', 'Daniela Vigilante',
       'role', 'field_worker',
       'employee_code', 'P002'
-    )
+    ),
+    '', '', '', '', '', '', '', ''
   ),
   (
     '00000000-0000-0000-0000-000000000000',
@@ -100,7 +110,8 @@ values
       'full_name', 'Eduardo Servicos',
       'role', 'field_worker',
       'employee_code', 'P003'
-    )
+    ),
+    '', '', '', '', '', '', '', ''
   )
 on conflict (id) do nothing;
 
