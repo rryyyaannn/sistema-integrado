@@ -21,3 +21,5 @@ Regras:
 | [0004](0004-offline-mmkv.md) | Offline com MMKV em vez de WatermelonDB na Fase 1.1 | Aceito |
 | [0005](0005-login-matricula-pin.md) | Login do colaborador por matrícula + PIN | Aceito |
 | [0006](0006-monorepo-pnpm.md) | Monorepo pnpm com node-linker hoisted | Aceito |
+| [0007](0007-eas-build-distribution.md) | Distribuição do app de campo via EAS Build (preview interno) | Aceito |
+| [0008](0008-asyncstorage-temp-queue.md) | Fila offline com AsyncStorage no slice (em vez de MMKV) | Aceito |

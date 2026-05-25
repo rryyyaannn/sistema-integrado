@@ -1,3 +1,3 @@
 /// <reference types="expo/types" />
 
-// NOTE: arquivo de tipos do Expo. E regenerado pelo `expo` quando necessario.
+// NOTE: This file should not be edited and should be in your git ignore

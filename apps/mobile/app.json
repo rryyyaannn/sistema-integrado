@@ -18,9 +18,17 @@
         "backgroundColor": "#2e63a3"
       }
     },
-    "plugins": ["expo-router"],
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "O app precisa da camera para escanear o QR Code do posto durante o check-in."
+        }
+      ]
+    ],
     "experiments": {
-      "typedRoutes": true
+      "typedRoutes": false
     }
   }
 }

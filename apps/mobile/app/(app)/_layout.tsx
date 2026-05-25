@@ -1,14 +1,14 @@
 import { useSession } from '@/modules/identity/session';
-import { Redirect } from 'expo-router';
+import { Redirect, Stack } from 'expo-router';
 import { ActivityIndicator, View } from 'react-native';
 
 /**
- * Root index. Redireciona pra area autenticada ou para o login conforme a sessao.
+ * Layout do grupo autenticado: bloqueia acesso sem sessao.
  */
-export default function Index() {
-  const state = useSession();
+export default function AppLayout() {
+  const session = useSession();
 
-  if (state.status === 'loading') {
+  if (session.status === 'loading') {
     return (
       <View className="flex-1 items-center justify-center bg-brand-800">
         <ActivityIndicator color="#ffffff" />
@@ -16,9 +16,9 @@ export default function Index() {
     );
   }
 
-  if (state.status === 'anonymous') {
+  if (session.status === 'anonymous') {
     return <Redirect href="/auth/login" />;
   }
 
-  return <Redirect href="/(app)" />;
+  return <Stack screenOptions={{ headerShown: false }} />;
 }
