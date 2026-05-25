@@ -20,9 +20,9 @@ quando voltar online. Você não perde nada.
 
 | Papel | Login | Senha/PIN |
 |---|---|---|
-| Colaborador 1 (Carlos Porteiro) | `P001` | `portaria123` |
-| Colaborador 2 (Daniela Vigilante) | `P002` | `portaria123` |
-| Colaborador 3 (Eduardo Serviços) | `P003` | `portaria123` |
+| Colaborador 1 (Carlos Porteiro) | `P001` | `1234` |
+| Colaborador 2 (Daniela Vigilante) | `P002` | `1234` |
+| Colaborador 3 (Eduardo Serviços) | `P003` | `1234` |
 
 Pode usar qualquer um. São colaboradores fictícios criados pelo seed.
 
@@ -43,7 +43,7 @@ Pode usar qualquer um. São colaboradores fictícios criados pelo seed.
 
 1. Tela inicial: **"Identificar-se"**.
    - Digite **P001** na matrícula.
-   - Digite **portaria123** no PIN.
+   - Digite **1234** no PIN.
    - Toca em "Entrar".
 2. Tela home: **"Bom plantão, Carlos Porteiro"**.
 3. Toca **"Fazer check-in"**.

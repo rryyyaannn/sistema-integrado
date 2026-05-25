@@ -5,7 +5,9 @@
 -- 3 condominios, 5 postos, turnos, checklists, categorias e escala de exemplo.
 --
 -- Idempotente: usa ON CONFLICT DO NOTHING, pode rodar mais de uma vez.
--- Senha de dev (admin e supervisor): portaria123
+-- Senha de dev:
+--   - admin e supervisor (login web por email): portaria123
+--   - colaboradores de campo (login mobile por matricula+PIN): 1234
 -- =============================================================================
 
 -- --- 1. Tenant ----------------------------------------------------------------
@@ -70,7 +72,7 @@ values
     'a1111111-0000-7000-8000-000000000003',
     'authenticated', 'authenticated',
     'colaborador-p001@portaria-modelo.local',
-    extensions.crypt('portaria123', extensions.gen_salt('bf')),
+    extensions.crypt('1234', extensions.gen_salt('bf')),
     now(), now(), now(),
     '{"provider":"email","providers":["email"]}'::jsonb,
     jsonb_build_object(
@@ -86,7 +88,7 @@ values
     'a1111111-0000-7000-8000-000000000004',
     'authenticated', 'authenticated',
     'colaborador-p002@portaria-modelo.local',
-    extensions.crypt('portaria123', extensions.gen_salt('bf')),
+    extensions.crypt('1234', extensions.gen_salt('bf')),
     now(), now(), now(),
     '{"provider":"email","providers":["email"]}'::jsonb,
     jsonb_build_object(
@@ -102,7 +104,7 @@ values
     'a1111111-0000-7000-8000-000000000005',
     'authenticated', 'authenticated',
     'colaborador-p003@portaria-modelo.local',
-    extensions.crypt('portaria123', extensions.gen_salt('bf')),
+    extensions.crypt('1234', extensions.gen_salt('bf')),
     now(), now(), now(),
     '{"provider":"email","providers":["email"]}'::jsonb,
     jsonb_build_object(
