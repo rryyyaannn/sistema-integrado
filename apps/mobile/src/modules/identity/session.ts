@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { buildSyntheticEmail, parseMatricula } from '@si/core';
 import type { Session } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
@@ -62,6 +62,13 @@ export async function signInWithMatriculaPin({
   matricula: string;
   pin: string;
 }): Promise<SignInResult> {
+  if (!isSupabaseConfigured()) {
+    return {
+      ok: false,
+      error: 'App nao configurado. Avise o administrador (env vars do Supabase ausentes).',
+    };
+  }
+
   const cleanMatricula = parseMatricula(matricula);
   const email = buildSyntheticEmail({ matricula: cleanMatricula, tenantSlug: TENANT_SLUG });
 
