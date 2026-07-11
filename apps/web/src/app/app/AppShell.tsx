@@ -46,7 +46,7 @@ export function AppShell({
               </div>
             </Link>
             <nav className="hidden gap-1 md:flex">
-              <NavLink href="/app">Visao geral</NavLink>
+              <NavLink href="/app">Monitoramento</NavLink>
               <NavLink href="/app/postos">Postos</NavLink>
               <NavLink href="/app/checkins">Check-ins</NavLink>
             </nav>
