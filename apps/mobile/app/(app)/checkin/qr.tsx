@@ -45,7 +45,7 @@ export default function QrScannerScreen() {
     if (lockRef.current) return;
     lockRef.current = true;
     setScanned(true);
-    router.replace({ pathname: '/(app)/checkin/form', params: { token: data } });
+    router.replace({ pathname: '/(app)/checkin/form', params: { token: data, purpose: 'entry' } });
   };
 
   return (

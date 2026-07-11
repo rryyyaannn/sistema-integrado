@@ -26,6 +26,22 @@ describe('buildCheckinPayload', () => {
     expect(p.selfie_storage_path).toBeNull();
   });
 
+  it('defaults validation_method to button ("SEM QR") and qr_token to null', () => {
+    const p = buildCheckinPayload(baseInput);
+    expect(p.validation_method).toBe('button');
+    expect(p.qr_token_used).toBeNull();
+  });
+
+  it('records qr validation when the QR token is provided', () => {
+    const p = buildCheckinPayload({
+      ...baseInput,
+      validationMethod: 'qr',
+      qrTokenUsed: 'pt_seed_vistaverde',
+    });
+    expect(p.validation_method).toBe('qr');
+    expect(p.qr_token_used).toBe('pt_seed_vistaverde');
+  });
+
   it('uses provided client_created_at when given', () => {
     const when = '2026-05-25T18:00:00.000Z';
     const p = buildCheckinPayload({ ...baseInput, clientCreatedAt: when });

@@ -6,8 +6,17 @@ export type CheckinInput = {
   postId: string;
   userId: string;
   purpose: Enums<'checkin_purpose'>;
-  checklistTemplateId: string;
+  /** Snapshot do template usado. Nullable: o check-in registra mesmo sem template resolvido (ex: offline). */
+  checklistTemplateId: string | null;
   checklistResponses: Json;
+  /**
+   * Como o posto foi validado: 'qr' quando o QR do posto foi lido (evidencia
+   * forte do local), 'button' quando o porteiro assumiu so pelo botao ("SEM
+   * QR"). Default 'button' (mais fraco), espelhando o default do banco.
+   */
+  validationMethod?: Enums<'checkin_validation_method'>;
+  /** Token lido do QR quando validationMethod='qr'. Permite auditar QR trocado. */
+  qrTokenUsed?: string | null;
   latitude?: number | null;
   longitude?: number | null;
   geoAccuracyM?: number | null;
@@ -22,6 +31,8 @@ export type CheckinInput = {
  * Monta o payload de INSERT em `checkins` com defaults sensatos.
  * - id e gerado como UUID v7 no cliente (ADR-0002) garante idempotencia em retry.
  * - client_created_at default = agora (ISO).
+ * - shift_session_id NAO e enviado: a trigger sync_shift_session o preenche no
+ *   banco a partir do purpose (ver migration 10 / ADR-0007).
  */
 export function buildCheckinPayload(input: CheckinInput): InsertDto<'checkins'> {
   return {
@@ -32,6 +43,8 @@ export function buildCheckinPayload(input: CheckinInput): InsertDto<'checkins'> 
     purpose: input.purpose,
     checklist_template_id: input.checklistTemplateId,
     checklist_responses: input.checklistResponses,
+    validation_method: input.validationMethod ?? 'button',
+    qr_token_used: input.qrTokenUsed ?? null,
     latitude: input.latitude ?? null,
     longitude: input.longitude ?? null,
     geo_accuracy_m: input.geoAccuracyM ?? null,

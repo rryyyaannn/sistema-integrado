@@ -1,7 +1,9 @@
+import { captureGeo } from '@/lib/location';
 import { useSession } from '@/modules/identity/session';
 import {
   type PostByToken,
   findPostByToken,
+  getPostById,
   submitCheckin,
 } from '@/modules/operations/checkin.service';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -21,26 +23,29 @@ const SERVICE_TYPE_LABEL: Record<string, string> = {
   monitoramento: 'Monitoramento',
 };
 
+/**
+ * Confirmacao do check-in de ENTRADA (assumir posto). Recebe `token` (via QR,
+ * validacao forte) OU `postId` (sem QR, validacao por botao). Captura a geo no
+ * momento da confirmacao. Periodico e saida tem telas proprias.
+ */
 export default function CheckinFormScreen() {
-  const { token } = useLocalSearchParams<{ token: string }>();
+  const { token, postId } = useLocalSearchParams<{ token?: string; postId?: string }>();
   const session = useSession();
+  const viaQr = !!token;
   const [load, setLoad] = useState<LoadState>({ status: 'loading' });
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!token) {
-      setLoad({ status: 'not_found' });
-      return;
-    }
     let active = true;
-    void findPostByToken(token).then((post) => {
+    void (async () => {
+      const post = token ? await findPostByToken(token) : postId ? await getPostById(postId) : null;
       if (!active) return;
       setLoad(post ? { status: 'ready', post } : { status: 'not_found' });
-    });
+    })();
     return () => {
       active = false;
     };
-  }, [token]);
+  }, [token, postId]);
 
   if (load.status === 'loading' || session.status === 'loading') {
     return (
@@ -54,7 +59,7 @@ export default function CheckinFormScreen() {
     return (
       <SafeAreaView className="flex-1 items-center justify-center gap-4 bg-brand-900 p-8">
         <Text className="text-center text-base text-white">
-          QR Code nao reconhecido. Verifique se o posto esta cadastrado.
+          Posto nao reconhecido. Verifique o QR ou selecione o posto na lista.
         </Text>
         <Pressable
           onPress={() => router.replace('/(app)')}
@@ -66,24 +71,34 @@ export default function CheckinFormScreen() {
     );
   }
 
-  if (session.status !== 'authenticated') {
-    return null;
-  }
+  if (session.status !== 'authenticated') return null;
 
   const post = load.post;
   const userId = session.session.user.id;
 
   const confirm = async () => {
     setSubmitting(true);
-    const result = await submitCheckin({ post, userId, purpose: 'entry' });
+    const geo = await captureGeo({
+      latitude: post.latitude,
+      longitude: post.longitude,
+      geofenceRadiusM: post.geofence_radius_m,
+    });
+    const result = await submitCheckin({
+      post,
+      userId,
+      purpose: 'entry',
+      validationMethod: viaQr ? 'qr' : 'button',
+      qrTokenUsed: viaQr ? token : null,
+      geo,
+    });
     setSubmitting(false);
     if (!result.ok) {
       Alert.alert('Erro ao registrar', result.error);
       return;
     }
-    const title = result.queued ? 'Check-in enfileirado' : 'Check-in registrado';
+    const title = result.queued ? 'Plantao aberto (offline)' : 'Plantao aberto';
     const message = result.queued
-      ? `Sem conexao agora. Vai sincronizar automaticamente quando a rede voltar (${post.name}).`
+      ? `Sem conexao agora. Vai sincronizar quando a rede voltar (${post.name}).`
       : `Bom plantao em ${post.name}.`;
     Alert.alert(title, message, [{ text: 'OK', onPress: () => router.replace('/(app)') }]);
   };
@@ -102,23 +117,25 @@ export default function CheckinFormScreen() {
               {post.address}
             </Text>
           ) : null}
-          <View className="mt-3 self-start rounded-sm border border-steel-700 bg-brand-800 px-2 py-0.5">
-            <Text className="text-[10px] font-semibold uppercase tracking-[2px] text-steel-300">
-              {SERVICE_TYPE_LABEL[post.service_type] ?? post.service_type}
-            </Text>
+          <View className="mt-3 flex-row gap-2">
+            <Badge label={SERVICE_TYPE_LABEL[post.service_type] ?? post.service_type} />
+            {viaQr ? (
+              <Badge label="QR confirmado" tone="ok" />
+            ) : (
+              <Badge label="Sem QR" tone="warn" />
+            )}
           </View>
         </View>
 
-        <View className="mt-8 gap-4 rounded-xl border border-steel-700/40 bg-brand-800/40 p-5">
-          <View>
-            <Text className="text-[10px] font-semibold uppercase tracking-[3px] text-steel-400">
-              Acao
-            </Text>
-            <Text className="mt-1 text-base font-semibold text-white">Confirmar entrada</Text>
-          </View>
+        <View className="mt-8 gap-3 rounded-xl border border-steel-700/40 bg-brand-800/40 p-5">
+          <Text className="text-[10px] font-semibold uppercase tracking-[3px] text-steel-400">
+            Confirmar entrada
+          </Text>
           <Text className="text-sm leading-relaxed text-steel-300">
-            Voce vai registrar inicio de plantao neste posto. A acao gera um registro imutavel com
-            horario e localizacao.
+            Voce vai iniciar o plantao neste posto. Registro imutavel com horario e localizacao.
+            {viaQr
+              ? ''
+              : ' Como nao houve QR, o evento fica marcado para conferencia do supervisor.'}
           </Text>
         </View>
 
@@ -134,7 +151,7 @@ export default function CheckinFormScreen() {
               <ActivityIndicator color="#0e1825" />
             ) : (
               <Text className="text-base font-bold tracking-tight text-brand-900">
-                Confirmar check-in
+                Confirmar e assumir posto
               </Text>
             )}
           </Pressable>
@@ -149,5 +166,23 @@ export default function CheckinFormScreen() {
         </View>
       </View>
     </SafeAreaView>
+  );
+}
+
+function Badge({ label, tone }: { label: string; tone?: 'ok' | 'warn' }) {
+  const cls =
+    tone === 'ok'
+      ? 'border-emerald-700/50 bg-emerald-500/10'
+      : tone === 'warn'
+        ? 'border-amber-700/50 bg-amber-500/10'
+        : 'border-steel-700 bg-brand-800';
+  const textCls =
+    tone === 'ok' ? 'text-emerald-300' : tone === 'warn' ? 'text-amber-300' : 'text-steel-300';
+  return (
+    <View className={`self-start rounded-sm border px-2 py-0.5 ${cls}`}>
+      <Text className={`text-[10px] font-semibold uppercase tracking-[2px] ${textCls}`}>
+        {label}
+      </Text>
+    </View>
   );
 }

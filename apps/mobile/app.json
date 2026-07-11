@@ -20,8 +20,8 @@
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
       ]
     },
     "plugins": [
@@ -30,6 +30,12 @@
         "expo-camera",
         {
           "cameraPermission": "O app precisa da camera para escanear o QR Code do posto durante o check-in."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "O app registra sua localizacao apenas no momento do check-in, para comprovar presenca no posto. Nao ha rastreamento continuo."
         }
       ]
     ],
