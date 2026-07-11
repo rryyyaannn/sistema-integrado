@@ -231,12 +231,15 @@ export type Database = {
           longitude: number | null
           post_id: string
           purpose: Database["public"]["Enums"]["checkin_purpose"]
+          qr_token_used: string | null
           schedule_id: string | null
           selfie_storage_path: string | null
           server_received_at: string
+          shift_session_id: string | null
           tenant_id: string
           unscheduled: boolean
           user_id: string
+          validation_method: Database["public"]["Enums"]["checkin_validation_method"]
         }
         Insert: {
           app_version?: string | null
@@ -252,12 +255,15 @@ export type Database = {
           longitude?: number | null
           post_id: string
           purpose: Database["public"]["Enums"]["checkin_purpose"]
+          qr_token_used?: string | null
           schedule_id?: string | null
           selfie_storage_path?: string | null
           server_received_at?: string
+          shift_session_id?: string | null
           tenant_id: string
           unscheduled?: boolean
           user_id: string
+          validation_method?: Database["public"]["Enums"]["checkin_validation_method"]
         }
         Update: {
           app_version?: string | null
@@ -273,12 +279,15 @@ export type Database = {
           longitude?: number | null
           post_id?: string
           purpose?: Database["public"]["Enums"]["checkin_purpose"]
+          qr_token_used?: string | null
           schedule_id?: string | null
           selfie_storage_path?: string | null
           server_received_at?: string
+          shift_session_id?: string | null
           tenant_id?: string
           unscheduled?: boolean
           user_id?: string
+          validation_method?: Database["public"]["Enums"]["checkin_validation_method"]
         }
         Relationships: [
           {
@@ -307,6 +316,13 @@ export type Database = {
             columns: ["schedule_id"]
             isOneToOne: false
             referencedRelation: "schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checkins_shift_session_id_fkey"
+            columns: ["shift_session_id"]
+            isOneToOne: false
+            referencedRelation: "shift_sessions"
             referencedColumns: ["id"]
           },
           {
@@ -531,11 +547,13 @@ export type Database = {
           description: string | null
           id: string
           incident_category_id: string | null
+          is_panic: boolean
           latitude: number | null
           longitude: number | null
           post_id: string
           server_received_at: string
           severity: Database["public"]["Enums"]["incident_severity"]
+          shift_session_id: string | null
           status: Database["public"]["Enums"]["incident_status"]
           tenant_id: string
           title: string
@@ -547,11 +565,13 @@ export type Database = {
           description?: string | null
           id?: string
           incident_category_id?: string | null
+          is_panic?: boolean
           latitude?: number | null
           longitude?: number | null
           post_id: string
           server_received_at?: string
           severity?: Database["public"]["Enums"]["incident_severity"]
+          shift_session_id?: string | null
           status?: Database["public"]["Enums"]["incident_status"]
           tenant_id: string
           title: string
@@ -563,11 +583,13 @@ export type Database = {
           description?: string | null
           id?: string
           incident_category_id?: string | null
+          is_panic?: boolean
           latitude?: number | null
           longitude?: number | null
           post_id?: string
           server_received_at?: string
           severity?: Database["public"]["Enums"]["incident_severity"]
+          shift_session_id?: string | null
           status?: Database["public"]["Enums"]["incident_status"]
           tenant_id?: string
           title?: string
@@ -593,6 +615,13 @@ export type Database = {
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_shift_session_id_fkey"
+            columns: ["shift_session_id"]
+            isOneToOne: false
+            referencedRelation: "shift_sessions"
             referencedColumns: ["id"]
           },
           {
@@ -729,10 +758,12 @@ export type Database = {
         Row: {
           created_at: string
           escalated_at: string | null
+          escalation_level: number
           expected_at: string
           fulfilled_by_checkin_id: string | null
           id: string
           post_id: string
+          resolved_at: string | null
           schedule_id: string
           tenant_id: string
           window_min: number
@@ -740,10 +771,12 @@ export type Database = {
         Insert: {
           created_at?: string
           escalated_at?: string | null
+          escalation_level?: number
           expected_at: string
           fulfilled_by_checkin_id?: string | null
           id?: string
           post_id: string
+          resolved_at?: string | null
           schedule_id: string
           tenant_id: string
           window_min?: number
@@ -751,10 +784,12 @@ export type Database = {
         Update: {
           created_at?: string
           escalated_at?: string | null
+          escalation_level?: number
           expected_at?: string
           fulfilled_by_checkin_id?: string | null
           id?: string
           post_id?: string
+          resolved_at?: string | null
           schedule_id?: string
           tenant_id?: string
           window_min?: number
@@ -1040,6 +1075,158 @@ export type Database = {
           },
         ]
       }
+      shift_sessions: {
+        Row: {
+          closed_at: string | null
+          closed_by_checkin_id: string | null
+          created_at: string
+          id: string
+          opened_at: string
+          opened_by_checkin_id: string | null
+          post_id: string
+          schedule_id: string | null
+          status: Database["public"]["Enums"]["shift_session_status"]
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          closed_at?: string | null
+          closed_by_checkin_id?: string | null
+          created_at?: string
+          id?: string
+          opened_at?: string
+          opened_by_checkin_id?: string | null
+          post_id: string
+          schedule_id?: string | null
+          status?: Database["public"]["Enums"]["shift_session_status"]
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          closed_at?: string | null
+          closed_by_checkin_id?: string | null
+          created_at?: string
+          id?: string
+          opened_at?: string
+          opened_by_checkin_id?: string | null
+          post_id?: string
+          schedule_id?: string | null
+          status?: Database["public"]["Enums"]["shift_session_status"]
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_sessions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_sessions_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_sessions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shift_start_expectations: {
+        Row: {
+          created_at: string
+          escalated_at: string | null
+          escalation_level: number
+          expected_start_at: string
+          fulfilled_by_session_id: string | null
+          id: string
+          post_id: string
+          resolved_at: string | null
+          schedule_id: string
+          shift_id: string
+          tenant_id: string
+          window_min: number
+        }
+        Insert: {
+          created_at?: string
+          escalated_at?: string | null
+          escalation_level?: number
+          expected_start_at: string
+          fulfilled_by_session_id?: string | null
+          id?: string
+          post_id: string
+          resolved_at?: string | null
+          schedule_id: string
+          shift_id: string
+          tenant_id: string
+          window_min?: number
+        }
+        Update: {
+          created_at?: string
+          escalated_at?: string | null
+          escalation_level?: number
+          expected_start_at?: string
+          fulfilled_by_session_id?: string | null
+          id?: string
+          post_id?: string
+          resolved_at?: string | null
+          schedule_id?: string
+          shift_id?: string
+          tenant_id?: string
+          window_min?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_start_expectations_fulfilled_by_session_id_fkey"
+            columns: ["fulfilled_by_session_id"]
+            isOneToOne: false
+            referencedRelation: "shift_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_start_expectations_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_start_expectations_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_start_expectations_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "shifts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_start_expectations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shifts: {
         Row: {
           created_at: string
@@ -1195,6 +1382,7 @@ export type Database = {
     }
     Enums: {
       checkin_purpose: "entry" | "periodic" | "exit"
+      checkin_validation_method: "qr" | "button"
       checklist_purpose: "entry" | "periodic" | "exit"
       incident_severity: "low" | "medium" | "high" | "critical"
       incident_status: "open" | "acknowledged" | "resolved" | "dismissed"
@@ -1205,6 +1393,7 @@ export type Database = {
         | "tecnico"
         | "monitoramento"
       schedule_status: "planned" | "confirmed" | "replaced" | "cancelled"
+      shift_session_status: "active" | "closed" | "abandoned"
       transcription_status: "pending" | "processing" | "completed" | "failed"
       user_role: "admin" | "supervisor" | "field_worker"
       validation_status: "pending" | "completed" | "failed" | "manual_override"
@@ -1336,6 +1525,7 @@ export const Constants = {
   public: {
     Enums: {
       checkin_purpose: ["entry", "periodic", "exit"],
+      checkin_validation_method: ["qr", "button"],
       checklist_purpose: ["entry", "periodic", "exit"],
       incident_severity: ["low", "medium", "high", "critical"],
       incident_status: ["open", "acknowledged", "resolved", "dismissed"],
@@ -1347,6 +1537,7 @@ export const Constants = {
         "monitoramento",
       ],
       schedule_status: ["planned", "confirmed", "replaced", "cancelled"],
+      shift_session_status: ["active", "closed", "abandoned"],
       transcription_status: ["pending", "processing", "completed", "failed"],
       user_role: ["admin", "supervisor", "field_worker"],
       validation_status: ["pending", "completed", "failed", "manual_override"],

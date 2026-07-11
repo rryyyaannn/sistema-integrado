@@ -46,3 +46,6 @@ apps/mobile/ios/
 
 # Claude Code — configuracao local do dev, nao versionada
 .claude/
+
+chat1.md
+chat2.md

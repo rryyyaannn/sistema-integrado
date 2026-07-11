@@ -599,3 +599,60 @@ Políticas por role:
 5. **Como expor/processar `latitude`/`longitude`** sem ferir LGPD → o sistema **só captura no momento do check-in**, não em background. Já alinhado, mas registrar formal no documento de LGPD.
 6. **Custos de IA por tenant** — quem paga em Fase 2? → adiar para spec de SaaS
 7. **Estratégia de queue para transcrição/validação** → arquitetura técnica (Edge Functions + retry)
+
+---
+
+## 8. Delta Fase 1.1 enxuta — "Supervisor Eletrônico" (migration 10)
+
+> Adicionado em 2026-07-11 pela redução de escopo (ver [ADR-0007](adr/0007-reducao-escopo-supervisor-eletronico.md)).
+> Migration `20260701000000_supervisor_eletronico_rework.sql`. **Aditivo** — não
+> altera as tabelas das migrations 01–09 além dos `ALTER ... ADD COLUMN` abaixo.
+
+### `shift_sessions` (plantão) — NOVA, Domínio D
+
+O plantão como entidade. Abre no check-in de entrada, encerra no de saída.
+
+| Coluna | Tipo | Notas |
+|---|---|---|
+| `id` | uuid PK | |
+| `tenant_id` | uuid FK | |
+| `post_id` | uuid FK → posts | |
+| `user_id` | uuid FK → users | Porteiro |
+| `schedule_id` | uuid FK NULLABLE | Escala vinculada, se houver |
+| `status` | shift_session_status | `active` / `closed` / `abandoned` |
+| `opened_at` | timestamptz | |
+| `opened_by_checkin_id` | uuid | Sem FK (ver comentário na migration) |
+| `closed_at` | timestamptz | |
+| `closed_by_checkin_id` | uuid | Sem FK |
+
+- Índice único parcial `(tenant_id, post_id) WHERE status='active'` → no máx. 1 plantão ativo por posto.
+- **Única tabela operacional com `UPDATE`** (ciclo de vida). Exceção consciente ao append-only (ADR-0002), restrita à trigger `sync_shift_session` (`SECURITY DEFINER`) e ao `service_role`.
+- A trigger `sync_shift_session` (BEFORE INSERT em `checkins`): `entry` abre plantão (e encerra órfão como `abandoned`); `periodic` vincula; `exit` vincula e encerra (`closed`).
+
+### `checkins` — colunas adicionadas
+
+| Coluna | Tipo | Notas |
+|---|---|---|
+| `validation_method` | checkin_validation_method | `qr` / `button` (default). `button` = "SEM QR" |
+| `qr_token_used` | text | Token lido quando `qr` (auditar QR de outro posto) |
+| `shift_session_id` | uuid FK → shift_sessions | Preenchido pela trigger |
+
+### `incidents` — colunas adicionadas (botão de pânico)
+
+| Coluna | Tipo | Notas |
+|---|---|---|
+| `is_panic` | boolean | Pânico: sem formulário, `severity=critical`, alerta imediato |
+| `shift_session_id` | uuid FK → shift_sessions | Nullable, preenchido pelo app |
+
+Pânico **reusa** `incidents` (ADR-0007). Protocolo de resposta via `incident_status_changes`.
+
+### Régua de escalonamento
+
+- **`shift_start_expectations`** (NOVA): "porteiro deveria ter assumido às X". Materializada por cron a partir de `schedules` + `shifts.start_time`. `escalation_level` (0/1/2), `fulfilled_by_session_id`. Régua: +5min monitoramento, +10/15min gerente.
+- **`periodic_checkin_expectations`**: colunas `escalation_level` e `resolved_at`. Régua: +15min monitoramento, +20min gerente.
+
+### Adiado (não entrou na migration 10)
+
+- `post_evaluations` (avaliação semanal/mensal) — secundário.
+- Canal WhatsApp/e-mail — MVP usa só push (Expo). Fase 1.2.
+- Validação semântica por IA (`ai_validations`, módulo 8) — tabela existe, fluxo fora do Cenário A.
