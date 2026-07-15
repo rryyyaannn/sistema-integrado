@@ -20,12 +20,22 @@ corepack pnpm --filter web dev      # http://localhost:3000
 ```
 Ou use a URL de **preview da Vercel** gerada pelo PR desta branch.
 
-**Mobile (app do porteiro):**
+**Mobile (app do porteiro) — no celular:**
 ```bash
 corepack pnpm --filter mobile start  # abre o Metro + QR do Expo
 ```
 Abra o **Expo Go** no celular e escaneie o QR do Metro. (Geolocalização e câmera
 funcionam no Expo Go; o app vai pedir as permissões na primeira vez.)
+
+**Mobile — no notebook (sem celular), via navegador:**
+```bash
+corepack pnpm --filter mobile exec expo start --web   # http://localhost:8081
+```
+Roda o mesmo app no navegador (react-native-web). Funciona o fluxo inteiro
+**exceto a leitura de QR** (a câmera do navegador não escaneia) — use o caminho
+**"sem QR"** para assumir o posto. A geolocalização usa a API do navegador (pede
+permissão). Para simular a tela de celular, abra as DevTools (F12) e ligue o modo
+dispositivo (Ctrl+Shift+M).
 
 ## Roteiro ponta a ponta (~5 min)
 
