@@ -23,3 +23,10 @@ Regras:
 | [0006](0006-monorepo-pnpm.md) | Monorepo pnpm com node-linker hoisted | Aceito |
 | [0007](0007-eas-build-distribution.md) | Distribuição do app de campo via EAS Build (preview interno) | Aceito |
 | [0008](0008-asyncstorage-temp-queue.md) | Fila offline com AsyncStorage no slice (em vez de MMKV) | Aceito |
+| [0009](0009-reducao-escopo-supervisor-eletronico.md) | Redução de escopo para "Supervisor Eletrônico para Porteiros" | Aceito |
+| [0010](0010-decisoes-produto-mvp-porteiro.md) | Decisões de produto do MVP do porteiro | Aceito |
+| [0011](0011-aguardando-rendicao-e-reconhecimento-de-escalonamento.md) | Aguardando rendição (pré-checkout) e reconhecimento de escalonamento | Aceito |
+
+_Nota: 0009 e 0010 originalmente colidiam com 0007/0008 (dois ADRs cada,
+criados em datas diferentes). Renumerados em 2026-07-29 para restaurar a
+sequência única — conteúdo inalterado, só o número e o nome do arquivo._

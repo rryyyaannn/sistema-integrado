@@ -78,7 +78,7 @@ dispositivo (Ctrl+Shift+M).
 - **Esqueceu o check-out:** se `P001` assumir de novo o mesmo posto sem encerrar,
   o plantão anterior vira `abandoned` automaticamente (trigger).
 
-## Ainda NÃO ligado nesta fatia (ver ADR-0008)
+## Ainda NÃO ligado nesta fatia (ver ADR-0010)
 
 - **Disparo automático de alertas** (push quando não assume/não faz periódico):
   as expectativas são materializadas, mas o cron + Edge Function que enviam o

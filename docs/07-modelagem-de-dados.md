@@ -604,7 +604,7 @@ Políticas por role:
 
 ## 8. Delta Fase 1.1 enxuta — "Supervisor Eletrônico" (migration 10)
 
-> Adicionado em 2026-07-11 pela redução de escopo (ver [ADR-0007](adr/0007-reducao-escopo-supervisor-eletronico.md)).
+> Adicionado em 2026-07-11 pela redução de escopo (ver [ADR-0009](adr/0009-reducao-escopo-supervisor-eletronico.md)).
 > Migration `20260701000000_supervisor_eletronico_rework.sql`. **Aditivo** — não
 > altera as tabelas das migrations 01–09 além dos `ALTER ... ADD COLUMN` abaixo.
 
@@ -644,7 +644,7 @@ O plantão como entidade. Abre no check-in de entrada, encerra no de saída.
 | `is_panic` | boolean | Pânico: sem formulário, `severity=critical`, alerta imediato |
 | `shift_session_id` | uuid FK → shift_sessions | Nullable, preenchido pelo app |
 
-Pânico **reusa** `incidents` (ADR-0007). Protocolo de resposta via `incident_status_changes`.
+Pânico **reusa** `incidents` (ADR-0009). Protocolo de resposta via `incident_status_changes`.
 
 ### Régua de escalonamento
 
