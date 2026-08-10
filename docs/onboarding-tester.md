@@ -49,8 +49,10 @@ escala de hoje) e nenhum plantão ativo.
 
 ## 2. App do porteiro (Android)
 
-1. **Receba o link do APK** (te mando junto com este guia).
-2. Abra o link no Android e baixe.
+1. Abra este link **no próprio Android**:
+   https://expo.dev/accounts/ryanmaciel18/projects/sistema-integrado/builds/09922604-6624-4a74-86ca-aabaed7774ac
+   (ou baixe direto: https://expo.dev/artifacts/eas/MU8uxVYI-7Y4utrU8BNjbrOxUOFROxJPfwHAaonnnKM.apk)
+2. Toque em **Install** / baixe o `.apk`.
 3. O Android vai perguntar se pode instalar de fonte desconhecida:
    - toque em **Configurações** → ative **Permitir desta fonte** → volte e instale.
 4. Se aparecer **"Play Protect bloqueou um app desconhecido"**, toque em
@@ -160,6 +162,14 @@ a versão nova está lá. Quando precisar de APK novo, te mando link.
 
 ---
 
-**Nota para o dev:** a escala do seed é gravada com a data do dia em que o seed
-rodou. Antes de cada sessão de teste, rode `node scripts/preparar-demo.mjs` para
-trazer a escala para hoje e encerrar plantões pendurados de dias anteriores.
+**Notas para o dev:**
+
+- A escala do seed é gravada com a data do dia em que o seed rodou. Antes de cada
+  sessão de teste, rode `node scripts/preparar-demo.mjs` para trazer a escala
+  para hoje e encerrar plantões pendurados de dias anteriores.
+- O link do APK acima é do build EAS `09922604` (canal `preview`, commit
+  `cec4c7e`). A URL do artifact vale 30 dias; a página do build continua servindo
+  o install depois disso. Para gerar outro, `/eas-preview`.
+- O banco é free tier: pausa sozinho depois de ~7 dias sem uso e o app passa a
+  dar erro de conexão. `preparar-demo.mjs` serve de ping — se falhar, religue o
+  projeto no dashboard do Supabase antes de avisar o testador.
