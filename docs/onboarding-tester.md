@@ -1,115 +1,165 @@
 # Sistema Integrado — Guia do testador
 
-Bem-vindo. Este documento é seu manual para instalar e usar o app de campo
-durante o teste. Leva uns 10 minutos.
+Bem-vindo. Este documento é o seu manual para testar o **Supervisor Eletrônico**:
+o app que o porteiro usa no posto e o painel que o monitoramento acompanha em
+tempo real. Leva uns 15 minutos.
+
+> Última atualização: 10/08/2026. O que está aqui é o que existe hoje — não é
+> promessa de roadmap.
 
 ## O que você está testando
 
-Um app Android usado pelo porteiro no celular do posto. Fluxo principal:
+Duas pontas conversando com o mesmo banco:
 
-1. O porteiro chega ao posto.
-2. Faz login com **matrícula** e **PIN**.
-3. Toca em **"Fazer check-in"** → app abre a câmera.
-4. Escaneia o **QR Code** que está afixado no posto.
-5. Confirma. Pronto — o check-in chega instantaneamente no painel web do supervisor.
-
-Se a internet cair, o app **enfileira** o check-in e reenvia automaticamente
-quando voltar online. Você não perde nada.
-
-## Conta de teste
-
-| Papel | Login | Senha/PIN |
+| Onde | O quê | Quem usa |
 |---|---|---|
-| Colaborador 1 (Carlos Porteiro) | `P001` | `1234` |
-| Colaborador 2 (Daniela Vigilante) | `P002` | `1234` |
-| Colaborador 3 (Eduardo Serviços) | `P003` | `1234` |
+| **App Android** | Assumir posto, check-in periódico, ocorrência, pânico, encerrar plantão | Porteiro, no celular do posto |
+| **Painel web** | Plantões ativos, ocorrências abertas, postos aguardando, pânico em destaque | Monitoramento / supervisor, no navegador |
 
-Pode usar qualquer um. São colaboradores fictícios criados pelo seed.
+O painel atualiza sozinho a cada 5 segundos. A ideia do teste é você ver o que
+faz no celular aparecer no navegador quase na hora.
 
-## Instalando o APK no Android
+## Contas de teste
 
-1. **Receba o link** do APK pelo WhatsApp (te mando assim que o build sair).
-2. Abra o link no Android.
-3. Ao baixar, o Android perguntará se quer instalar apps de fontes desconhecidas.
-   - Toca em **"Configurações"**.
-   - Ativa **"Permitir desta fonte"** (geralmente o Chrome ou Drive).
-   - Volta e instala.
-4. Abre o app.
+Tudo é dado fictício de uma empresa de exemplo ("Portaria Modelo").
 
-> Se o Android avisar **"Play Protect bloqueou um app desconhecido"**, toca em
-> **"Instalar mesmo assim"**. É só porque o app não está na Play Store ainda.
+| Papel | Onde loga | Login | Senha / PIN |
+|---|---|---|---|
+| Porteiro | App Android | `P001` | `1234` |
+| Porteiro | App Android | `P002` | `1234` |
+| Porteiro | App Android | `P003` | `1234` |
+| Admin | Painel web | `admin@portaria-modelo.com.br` | `portaria123` |
+| Supervisor | Painel web | `supervisor@portaria-modelo.com.br` | `portaria123` |
 
-## Fluxo nuclear do teste
+O ideal é abrir o painel no computador e ficar com o celular do lado.
 
-1. Tela inicial: **"Identificar-se"**.
-   - Digite **P001** na matrícula.
-   - Digite **1234** no PIN.
-   - Toca em "Entrar".
-2. Tela home: **"Bom plantão, Carlos Porteiro"**.
-3. Toca **"Fazer check-in"**.
-4. Permite o acesso à câmera (uma vez só).
-5. Aponta para o QR Code de um posto. Te mando uma imagem por WhatsApp para
-   você escanear da tela do PC, ou cole o QR num papel se preferir.
-   - QR Codes vivem em: `https://sistema-integrado-rryyyaannns-projects.vercel.app/app/postos` → "Ver QR" em cada posto.
-6. Confirma o check-in.
-7. Vê a mensagem **"Bom plantão"**.
+## 1. Painel web
 
-## Como dizer ao dev "achei um problema"
+Abra no navegador: **https://sistema-integrado-chi.vercel.app**
 
-Em vez de WhatsApp solto, abra uma issue no GitHub:
+Logue como **admin**. Você cai no painel de monitoramento. Páginas:
 
-1. Vai em https://github.com/rryyyaannn/sistema-integrado/issues/new
-2. Título curto e específico: `[bug] tela X mostra Y quando deveria Z`
-3. Corpo: o que você fez, o que esperava, o que aconteceu, screenshot/print.
+- `/app` — o monitoramento em si (plantões ativos, ocorrências, escala do dia).
+- `/app/postos` — os 5 postos cadastrados; cada um tem um **QR Code** para
+  imprimir ou mostrar na tela.
+- `/app/checkins` — o histórico de check-ins, com localização.
 
-Se for crítico (não dá pra continuar testando), pode mandar WhatsApp também
-— mas registra a issue para não esquecer.
+Ao abrir pela primeira vez você deve ver **3 postos aguardando check-in** (a
+escala de hoje) e nenhum plantão ativo.
 
-## Limitações conhecidas (não reportar como bug)
+## 2. App do porteiro (Android)
 
-Este é um teste de fluxo nuclear, com várias features ainda em construção:
+1. **Receba o link do APK** (te mando junto com este guia).
+2. Abra o link no Android e baixe.
+3. O Android vai perguntar se pode instalar de fonte desconhecida:
+   - toque em **Configurações** → ative **Permitir desta fonte** → volte e instale.
+4. Se aparecer **"Play Protect bloqueou um app desconhecido"**, toque em
+   **Instalar mesmo assim**. É só porque o app ainda não está na Play Store.
+5. Abra o app e permita **câmera** e **localização** quando ele pedir. Ele só usa
+   a localização no momento do registro — não há rastreamento contínuo.
 
-- ❌ Ainda **não tem** registro de ocorrências (texto/foto/áudio).
-- ❌ A IA ainda **não valida** o checklist por voz.
-- ❌ **Não tem** push notification para o supervisor.
-- ❌ **Não tem** check-ins periódicos automáticos.
-- ❌ **Não tem** dashboard com gráficos.
+## 3. Roteiro do teste (~10 min)
 
-Tudo isso entra nas próximas 8 semanas (Sprint 3+).
+### Passo 1 — Entrar
 
-## O que sim deve funcionar
+Tela **Identificar-se**: matrícula `P001`, PIN `1234`.
+A home mostra **"Nenhum plantão ativo"** e a sua escala do dia.
 
-- Login com matrícula + PIN.
-- Escanear QR Code do posto.
-- Registrar check-in de entrada.
-- Ver o check-in aparecer no painel web em ~5 segundos.
-- Modo avião: check-in fica pendente, sincroniza ao reconectar.
-- Logout (no botão "Sair do plantão" na home).
+### Passo 2 — Assumir o posto
 
-## Painel web
+Toque em **Assumir posto**. Dois caminhos:
 
-Disponível em: `https://sistema-integrado-rryyyaannns-projects.vercel.app`
+- **Com QR Code (o jeito certo):** toque em **Escanear QR Code** e aponte para o
+  QR do posto. Pegue o QR no painel web em `/app/postos` → "Ver QR" (pode
+  escanear direto da tela do computador).
+- **Sem QR:** toque no posto da sua escala e confirme. O registro é aceito, mas
+  fica **marcado para conferência** — é assim de propósito.
 
-Você pode logar como **supervisor**:
-- Email: `supervisor@portaria-modelo.com.br`
-- Senha: `portaria123`
+👉 **No painel:** em até 5 segundos aparece um **plantão ativo** com seu nome e o
+horário, e "postos aguardando" cai de 3 para 2.
 
-Ou como **admin**:
-- Email: `admin@portaria-modelo.com.br`
-- Senha: `portaria123`
+### Passo 3 — Check-in periódico
 
-Páginas a usar:
-- `/app/postos` — lista dos 5 postos com seus QR Codes.
-- `/app/checkins` — dashboard live, atualiza a cada 5 segundos.
+Na home (agora com plantão ativo) → **Check-in periódico** → responda
+**"Está tudo normal no posto?"** com *Sim, tudo normal* ou *Não, há pendência*
+(neste caso escreva o que houve).
 
-## Atualizações futuras do APK
+👉 **No painel:** o registro entra no histórico em `/app/checkins` com a posição.
 
-Depois do primeiro APK instalado, mudanças que **não** mexem em código nativo
-chegam automaticamente via OTA (Over-The-Air): você fecha e abre o app de
-novo, e a versão nova está lá. Não precisa reinstalar.
+### Passo 4 — Registrar uma ocorrência
 
-Mudanças nativas (raras) exigem novo APK — te mando link novo.
+**Registrar ocorrência** → escolha uma categoria (ela já sugere a gravidade) →
+ajuste se quiser → descreva → **Registrar**.
 
-## Dúvidas
+👉 **No painel:** a ocorrência aparece em "Ocorrências abertas" com a etiqueta de
+gravidade. Se for **alta** ou **crítica**, o monitoramento pode marcar como
+**revisada** ali mesmo — faça isso e veja o item sair da lista.
 
-Qualquer coisa fora desse guia, me chama. Obrigado por testar.
+### Passo 5 — Pânico
+
+Botão vermelho **PÂNICO** → **Acionar** → confirme.
+
+👉 **No painel:** um **banner vermelho** aparece no topo e o pânico fica fixado
+como primeiro item das ocorrências. Este é o teste mais importante do alerta
+crítico.
+
+### Passo 6 — Encerrar o plantão
+
+**Encerrar plantão**. Aqui há duas opções, e vale testar as duas em rodadas
+diferentes:
+
+- **Avisar e aguardar rendição** (botão âmbar): avisa o monitoramento de que você
+  terminou mas ainda está no posto esperando quem vai render. **O plantão
+  continua ativo.** No painel o posto passa a aparecer como *aguardando rendição*.
+- **Confirmar check-out** (botão branco): encerra de vez. Antes, responda
+  *"Há pendências para o próximo turno?"* — é a passagem de serviço.
+
+👉 **No painel:** o plantão sai de "ativos" e o posto volta para "aguardando".
+
+## 4. Coisas que valem testar de propósito
+
+- **Modo avião no meio de um registro.** O app enfileira e a home mostra
+  "pendente de envio". Volte a rede: ele reenvia sozinho (ou toque em
+  "Tentar reenviar agora").
+- **Longe do posto.** Os postos do teste têm coordenadas em São Paulo. Se você
+  estiver longe, o registro é aceito e marcado **"fora do raio"** — aparece assim
+  no painel. É o comportamento esperado, não é bug.
+- **Esquecer o check-out.** Assuma um posto, feche o app e assuma de novo sem
+  encerrar: o plantão anterior é fechado automaticamente como **abandonado**.
+- **Rendição de verdade.** Faça `P001` avisar rendição e, logo depois, entre com
+  `P002` e assuma o mesmo posto. O plantão do `P001` fecha como **encerrado**
+  (não como abandonado), porque houve aviso.
+
+## 5. O que ainda NÃO existe (não reportar como bug)
+
+- **Push / alerta automático.** O sistema já sabe quem deveria ter assumido e
+  quem deveria ter feito o periódico, mas ainda **não envia** notificação quando
+  isso não acontece. Hoje o monitoramento é olho no painel. (Sprint 4)
+- **Checklist item a item** na entrada do posto. Hoje o app grava o modelo do
+  checklist, mas não pergunta item por item. (Sprint 3)
+- **Foto, áudio e IA** na ocorrência. Hoje é texto. (Sprint 3+)
+- **Relatórios e gráficos.** O painel é operacional, ao vivo — não é BI ainda.
+- **iPhone.** Só Android por enquanto.
+
+## 6. Como reportar um problema
+
+Abra uma issue: https://github.com/rryyyaannn/sistema-integrado/issues/new
+
+- Título curto e específico: `[bug] tela X mostra Y quando deveria Z`
+- No corpo: o que você fez, o que esperava, o que aconteceu, print da tela.
+- Diga também **qual conta** (P001? admin?) e **que horas** foi — ajuda a achar
+  o registro no banco.
+
+Se for crítico (travou, não dá para continuar), me chama no WhatsApp também —
+mas registre a issue depois para não perder.
+
+## 7. Atualizações do app
+
+Mudanças que não mexem em código nativo chegam **sozinhas**: feche e abra o app,
+a versão nova está lá. Quando precisar de APK novo, te mando link.
+
+---
+
+**Nota para o dev:** a escala do seed é gravada com a data do dia em que o seed
+rodou. Antes de cada sessão de teste, rode `node scripts/preparar-demo.mjs` para
+trazer a escala para hoje e encerrar plantões pendurados de dias anteriores.
