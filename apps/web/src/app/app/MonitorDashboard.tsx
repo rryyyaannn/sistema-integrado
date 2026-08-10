@@ -1,12 +1,14 @@
 'use client';
 
 import { createClient } from '@/lib/supabase/client';
-import type { Enums } from '@si/types';
+import type { Database, Enums } from '@si/types';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
 
 type ActiveSessionRow = {
   id: string;
   opened_at: string;
+  pre_checkout_at: string | null;
   post: { id: string; name: string; client: { name: string } | null } | null;
   user: { full_name: string } | null;
 };
@@ -21,6 +23,14 @@ type OpenIncidentRow = {
   user: { full_name: string } | null;
 };
 
+type UnscheduledEntryRow = {
+  id: string;
+  server_received_at: string;
+  checklist_responses: { reason?: string | null } | null;
+  post: { name: string } | null;
+  user: { full_name: string } | null;
+};
+
 type ScheduleRow = {
   post: { id: string; name: string; client: { name: string } | null } | null;
   shift: { name: string | null; start_time: string } | null;
@@ -30,6 +40,7 @@ type ScheduleRow = {
 type Snapshot = {
   active: ActiveSessionRow[];
   incidents: OpenIncidentRow[];
+  unscheduledEntries: UnscheduledEntryRow[];
   awaiting: {
     postId: string;
     postName: string;
@@ -69,17 +80,38 @@ export function MonitorDashboard() {
   const [snap, setSnap] = useState<Snapshot | null>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [reviewingId, setReviewingId] = useState<string | null>(null);
+
+  const reviewIncident = async (incidentId: string) => {
+    setReviewingId(incidentId);
+    // @supabase/ssr 0.5.2 nao repassa o generico Schema do jeito que o
+    // supabase-js 2.106 espera para tipar .rpc() — sem este cast o TS perde a
+    // inferencia dos argumentos da funcao. .from() nao e afetado.
+    const supabase = createClient() as unknown as SupabaseClient<Database>;
+    const { error } = await supabase.rpc('change_incident_status', {
+      p_incident_id: incidentId,
+      p_to_status: 'acknowledged',
+    });
+    setReviewingId(null);
+    if (error) {
+      window.alert(`Erro ao revisar: ${error.message}`);
+      return;
+    }
+    setSnap((prev) =>
+      prev ? { ...prev, incidents: prev.incidents.filter((i) => i.id !== incidentId) } : prev,
+    );
+  };
 
   useEffect(() => {
     const supabase = createClient();
     let active = true;
 
     const fetchAll = async () => {
-      const [sessionsRes, incidentsRes, schedulesRes] = await Promise.all([
+      const [sessionsRes, incidentsRes, schedulesRes, unscheduledRes] = await Promise.all([
         supabase
           .from('shift_sessions')
           .select(
-            'id, opened_at, post:posts!inner(id, name, client:clients(name)), user:users!inner(full_name)',
+            'id, opened_at, pre_checkout_at, post:posts!inner(id, name, client:clients(name)), user:users!inner(full_name)',
           )
           .eq('status', 'active')
           .order('opened_at', { ascending: true })
@@ -102,11 +134,22 @@ export function MonitorDashboard() {
           .eq('scheduled_date', todayLocal())
           .in('status', ['planned', 'confirmed'])
           .returns<ScheduleRow[]>(),
+        supabase
+          .from('checkins')
+          .select(
+            'id, server_received_at, checklist_responses, post:posts!inner(name), user:users!inner(full_name)',
+          )
+          .eq('purpose', 'entry')
+          .eq('unscheduled', true)
+          .order('server_received_at', { ascending: false })
+          .limit(20)
+          .returns<UnscheduledEntryRow[]>(),
       ]);
 
       if (!active) return;
 
-      const err = sessionsRes.error || incidentsRes.error || schedulesRes.error;
+      const err =
+        sessionsRes.error || incidentsRes.error || schedulesRes.error || unscheduledRes.error;
       if (err) {
         setStatus('error');
         setErrorMsg(err.message);
@@ -131,7 +174,12 @@ export function MonitorDashboard() {
         ];
       });
 
-      setSnap({ active: activeSessions, incidents: incidentsRes.data ?? [], awaiting });
+      setSnap({
+        active: activeSessions,
+        incidents: incidentsRes.data ?? [],
+        unscheduledEntries: unscheduledRes.data ?? [],
+        awaiting,
+      });
       setStatus('ready');
     };
 
@@ -161,6 +209,7 @@ export function MonitorDashboard() {
   }
 
   const panics = snap.incidents.filter((i) => i.is_panic);
+  const awaitingRelief = snap.active.filter((s) => s.pre_checkout_at);
 
   return (
     <div className="flex flex-col gap-6">
@@ -180,10 +229,15 @@ export function MonitorDashboard() {
       ) : null}
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         <StatTile label="Plantoes ativos" value={snap.active.length} tone="ok" />
         <StatTile
-          label="Postos aguardando"
+          label="Aguardando rendicao"
+          value={awaitingRelief.length}
+          tone={awaitingRelief.length ? 'warn' : 'muted'}
+        />
+        <StatTile
+          label="Postos aguardando inicio"
           value={snap.awaiting.length}
           tone={snap.awaiting.length ? 'warn' : 'muted'}
         />
@@ -203,7 +257,12 @@ export function MonitorDashboard() {
           ) : (
             <ul className="divide-y divide-steel-200/60">
               {snap.active.map((s) => (
-                <li key={s.id} className="flex items-center justify-between gap-4 px-5 py-3.5">
+                <li
+                  key={s.id}
+                  className={`flex items-center justify-between gap-4 px-5 py-3.5 ${
+                    s.pre_checkout_at ? 'bg-amber-50/60' : ''
+                  }`}
+                >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-brand-900">
                       {s.post?.name ?? '(sem posto)'}
@@ -212,10 +271,17 @@ export function MonitorDashboard() {
                       {s.user?.full_name ?? '(desconhecido)'} · {s.post?.client?.name ?? ''}
                     </p>
                   </div>
-                  <span className="inline-flex items-center gap-1.5 rounded-sm border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-700">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                    desde {timeOf(s.opened_at)}
-                  </span>
+                  {s.pre_checkout_at ? (
+                    <span className="inline-flex items-center gap-1.5 rounded-sm border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-800">
+                      <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                      aguardando rendicao desde {timeOf(s.pre_checkout_at)}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 rounded-sm border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-700">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      desde {timeOf(s.opened_at)}
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
@@ -269,10 +335,53 @@ export function MonitorDashboard() {
                     {new Date(i.server_received_at).toLocaleString('pt-BR')}
                   </p>
                 </div>
-                <span
-                  className={`shrink-0 rounded-sm border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${SEVERITY_STYLE[i.severity]}`}
-                >
-                  {SEVERITY_LABEL[i.severity]}
+                <div className="flex shrink-0 items-center gap-2">
+                  <span
+                    className={`rounded-sm border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${SEVERITY_STYLE[i.severity]}`}
+                  >
+                    {SEVERITY_LABEL[i.severity]}
+                  </span>
+                  {i.severity === 'high' || i.severity === 'critical' ? (
+                    <button
+                      type="button"
+                      onClick={() => reviewIncident(i.id)}
+                      disabled={reviewingId === i.id}
+                      className="rounded-sm border border-brand-300 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-brand-800 active:opacity-70 disabled:opacity-50"
+                    >
+                      {reviewingId === i.id ? 'Revisando...' : 'Revisar'}
+                    </button>
+                  ) : null}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Section>
+
+      {/* Entradas fora da escala */}
+      <Section title="Entradas fora da escala">
+        {snap.unscheduledEntries.length === 0 ? (
+          <Empty>Nenhuma entrada fora da escala recente.</Empty>
+        ) : (
+          <ul className="divide-y divide-steel-200/60">
+            {snap.unscheduledEntries.map((u) => (
+              <li key={u.id} className="flex items-start justify-between gap-4 px-5 py-3.5">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-brand-900">
+                    {u.post?.name ?? '(sem posto)'}
+                  </p>
+                  <p className="mt-0.5 text-xs text-steel-600">
+                    {u.user?.full_name ?? '(desconhecido)'} ·{' '}
+                    {new Date(u.server_received_at).toLocaleString('pt-BR')}
+                  </p>
+                  {u.checklist_responses?.reason ? (
+                    <p className="mt-1 text-xs italic text-steel-500">
+                      "{u.checklist_responses.reason}"
+                    </p>
+                  ) : null}
+                </div>
+                <span className="shrink-0 rounded-sm border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-800">
+                  sem escala
                 </span>
               </li>
             ))}

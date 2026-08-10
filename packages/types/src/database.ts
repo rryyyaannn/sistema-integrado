@@ -756,6 +756,7 @@ export type Database = {
       }
       periodic_checkin_expectations: {
         Row: {
+          acknowledged_at: string | null
           created_at: string
           escalated_at: string | null
           escalation_level: number
@@ -769,6 +770,7 @@ export type Database = {
           window_min: number
         }
         Insert: {
+          acknowledged_at?: string | null
           created_at?: string
           escalated_at?: string | null
           escalation_level?: number
@@ -782,6 +784,7 @@ export type Database = {
           window_min?: number
         }
         Update: {
+          acknowledged_at?: string | null
           created_at?: string
           escalated_at?: string | null
           escalation_level?: number
@@ -1075,6 +1078,73 @@ export type Database = {
           },
         ]
       }
+      shift_relief_expectations: {
+        Row: {
+          acknowledged_at: string | null
+          created_at: string
+          escalated_at: string | null
+          escalation_level: number
+          fulfilled_by_checkin_id: string | null
+          id: string
+          post_id: string
+          pre_checkout_at: string
+          resolved_at: string | null
+          shift_session_id: string
+          tenant_id: string
+          window_min: number
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          created_at?: string
+          escalated_at?: string | null
+          escalation_level?: number
+          fulfilled_by_checkin_id?: string | null
+          id?: string
+          post_id: string
+          pre_checkout_at: string
+          resolved_at?: string | null
+          shift_session_id: string
+          tenant_id: string
+          window_min?: number
+        }
+        Update: {
+          acknowledged_at?: string | null
+          created_at?: string
+          escalated_at?: string | null
+          escalation_level?: number
+          fulfilled_by_checkin_id?: string | null
+          id?: string
+          post_id?: string
+          pre_checkout_at?: string
+          resolved_at?: string | null
+          shift_session_id?: string
+          tenant_id?: string
+          window_min?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_relief_expectations_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_relief_expectations_shift_session_id_fkey"
+            columns: ["shift_session_id"]
+            isOneToOne: false
+            referencedRelation: "shift_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_relief_expectations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shift_sessions: {
         Row: {
           closed_at: string | null
@@ -1084,6 +1154,7 @@ export type Database = {
           opened_at: string
           opened_by_checkin_id: string | null
           post_id: string
+          pre_checkout_at: string | null
           schedule_id: string | null
           status: Database["public"]["Enums"]["shift_session_status"]
           tenant_id: string
@@ -1097,6 +1168,7 @@ export type Database = {
           opened_at?: string
           opened_by_checkin_id?: string | null
           post_id: string
+          pre_checkout_at?: string | null
           schedule_id?: string | null
           status?: Database["public"]["Enums"]["shift_session_status"]
           tenant_id: string
@@ -1110,6 +1182,7 @@ export type Database = {
           opened_at?: string
           opened_by_checkin_id?: string | null
           post_id?: string
+          pre_checkout_at?: string | null
           schedule_id?: string | null
           status?: Database["public"]["Enums"]["shift_session_status"]
           tenant_id?: string
@@ -1148,6 +1221,7 @@ export type Database = {
       }
       shift_start_expectations: {
         Row: {
+          acknowledged_at: string | null
           created_at: string
           escalated_at: string | null
           escalation_level: number
@@ -1162,6 +1236,7 @@ export type Database = {
           window_min: number
         }
         Insert: {
+          acknowledged_at?: string | null
           created_at?: string
           escalated_at?: string | null
           escalation_level?: number
@@ -1176,6 +1251,7 @@ export type Database = {
           window_min?: number
         }
         Update: {
+          acknowledged_at?: string | null
           created_at?: string
           escalated_at?: string | null
           escalation_level?: number
@@ -1375,13 +1451,44 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      change_incident_status: {
+        Args: {
+          p_comment?: string
+          p_incident_id: string
+          p_to_status: Database["public"]["Enums"]["incident_status"]
+        }
+        Returns: {
+          client_created_at: string | null
+          corrects_id: string | null
+          description: string | null
+          id: string
+          incident_category_id: string | null
+          is_panic: boolean
+          latitude: number | null
+          longitude: number | null
+          post_id: string
+          server_received_at: string
+          severity: Database["public"]["Enums"]["incident_severity"]
+          shift_session_id: string | null
+          status: Database["public"]["Enums"]["incident_status"]
+          tenant_id: string
+          title: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "incidents"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       current_tenant_id: { Args: never; Returns: string }
       current_user_role: { Args: never; Returns: string }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
       uuid_generate_v7: { Args: never; Returns: string }
     }
     Enums: {
-      checkin_purpose: "entry" | "periodic" | "exit"
+      checkin_purpose: "entry" | "periodic" | "exit" | "pre_checkout"
       checkin_validation_method: "qr" | "button"
       checklist_purpose: "entry" | "periodic" | "exit"
       incident_severity: "low" | "medium" | "high" | "critical"
@@ -1524,7 +1631,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      checkin_purpose: ["entry", "periodic", "exit"],
+      checkin_purpose: ["entry", "periodic", "exit", "pre_checkout"],
       checkin_validation_method: ["qr", "button"],
       checklist_purpose: ["entry", "periodic", "exit"],
       incident_severity: ["low", "medium", "high", "critical"],

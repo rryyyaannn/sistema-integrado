@@ -15,6 +15,9 @@ function timeOf(iso: string): string {
 /**
  * Check-out — encerra o plantao (a trigger fecha o shift_session). Faz a
  * pergunta de passagem de servico: "ha pendencias para o proximo turno?".
+ * Tambem oferece o pre-checkout (ADR-0011): aviso opcional de que o porteiro
+ * terminou e aguarda rendicao, sem encerrar o plantao — util quando o proximo
+ * ainda nao chegou.
  */
 export default function EncerrarScreen() {
   const session = useSession();
@@ -22,6 +25,7 @@ export default function EncerrarScreen() {
   const [plantao, setPlantao] = useState<ActivePlantao | null | 'loading'>('loading');
   const [handover, setHandover] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [signalingRelief, setSignalingRelief] = useState(false);
 
   useEffect(() => {
     if (!userId) return;
@@ -72,6 +76,33 @@ export default function EncerrarScreen() {
     );
   };
 
+  const signalRelief = async () => {
+    setSignalingRelief(true);
+    const geo = await captureGeo({
+      latitude: plantao.post.latitude,
+      longitude: plantao.post.longitude,
+      geofenceRadiusM: plantao.post.geofence_radius_m,
+    });
+    const result = await submitCheckin({
+      post: plantao.post,
+      userId,
+      purpose: 'pre_checkout',
+      validationMethod: 'button',
+      geo,
+      checklistResponses: { handover_notes: handover.trim() || null },
+    });
+    setSignalingRelief(false);
+    if (!result.ok) {
+      Alert.alert('Erro ao avisar', result.error);
+      return;
+    }
+    Alert.alert(
+      'Monitoramento avisado',
+      'O posto aparece como "aguardando rendicao" no painel. Voce continua no plantao ate o check-out final.',
+      [{ text: 'OK', onPress: () => router.replace('/(app)') }],
+    );
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-brand-900">
       <View className="flex-1 p-6">
@@ -84,6 +115,11 @@ export default function EncerrarScreen() {
           <Text className="mt-2 text-xs uppercase tracking-[2px] text-steel-400">
             Assumido as {timeOf(plantao.openedAt)}
           </Text>
+          {plantao.preCheckoutAt ? (
+            <Text className="mt-1 text-xs font-semibold uppercase tracking-[2px] text-amber-300">
+              Rendicao avisada as {timeOf(plantao.preCheckoutAt)} — aguardando
+            </Text>
+          ) : null}
         </View>
 
         <View className="mt-8 gap-2">
@@ -120,6 +156,21 @@ export default function EncerrarScreen() {
               </Text>
             )}
           </Pressable>
+          {!plantao.preCheckoutAt ? (
+            <Pressable
+              onPress={signalRelief}
+              disabled={signalingRelief}
+              className="h-12 items-center justify-center rounded-md border border-amber-700/50 bg-amber-500/10 active:opacity-80"
+            >
+              {signalingRelief ? (
+                <ActivityIndicator color="#fbbf24" />
+              ) : (
+                <Text className="text-sm font-semibold uppercase tracking-[2px] text-amber-300">
+                  Avisar e aguardar rendicao
+                </Text>
+              )}
+            </Pressable>
+          ) : null}
           <Pressable
             onPress={() => router.back()}
             className="h-12 items-center justify-center active:opacity-60"

@@ -18,6 +18,7 @@ type CheckinRow = {
 const PURPOSE_LABEL: Record<Enums<'checkin_purpose'>, string> = {
   entry: 'Entrada',
   periodic: 'Periodico',
+  pre_checkout: 'Aguardando rendicao',
   exit: 'Saida',
 };
 

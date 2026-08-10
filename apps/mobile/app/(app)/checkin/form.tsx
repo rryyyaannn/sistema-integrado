@@ -6,15 +6,16 @@ import {
   getPostById,
   submitCheckin,
 } from '@/modules/operations/checkin.service';
+import { getTodaySchedule } from '@/modules/operations/shift.service';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 type LoadState =
   | { status: 'loading' }
   | { status: 'not_found' }
-  | { status: 'ready'; post: PostByToken };
+  | { status: 'ready'; post: PostByToken; scheduleIdForPost: string | null };
 
 const SERVICE_TYPE_LABEL: Record<string, string> = {
   portaria: 'Portaria',
@@ -31,21 +32,29 @@ const SERVICE_TYPE_LABEL: Record<string, string> = {
 export default function CheckinFormScreen() {
   const { token, postId } = useLocalSearchParams<{ token?: string; postId?: string }>();
   const session = useSession();
+  const userId = session.status === 'authenticated' ? session.session.user.id : null;
   const viaQr = !!token;
   const [load, setLoad] = useState<LoadState>({ status: 'loading' });
   const [submitting, setSubmitting] = useState(false);
+  const [reason, setReason] = useState('');
 
   useEffect(() => {
     let active = true;
     void (async () => {
       const post = token ? await findPostByToken(token) : postId ? await getPostById(postId) : null;
+      if (!post) {
+        if (active) setLoad({ status: 'not_found' });
+        return;
+      }
+      const schedule = userId ? await getTodaySchedule(userId) : [];
+      const match = schedule.find((s) => s.post.id === post.id);
       if (!active) return;
-      setLoad(post ? { status: 'ready', post } : { status: 'not_found' });
+      setLoad({ status: 'ready', post, scheduleIdForPost: match?.scheduleId ?? null });
     })();
     return () => {
       active = false;
     };
-  }, [token, postId]);
+  }, [token, postId, userId]);
 
   if (load.status === 'loading' || session.status === 'loading') {
     return (
@@ -71,10 +80,10 @@ export default function CheckinFormScreen() {
     );
   }
 
-  if (session.status !== 'authenticated') return null;
+  if (session.status !== 'authenticated' || !userId) return null;
 
   const post = load.post;
-  const userId = session.session.user.id;
+  const unscheduled = load.scheduleIdForPost === null;
 
   const confirm = async () => {
     setSubmitting(true);
@@ -89,6 +98,9 @@ export default function CheckinFormScreen() {
       purpose: 'entry',
       validationMethod: viaQr ? 'qr' : 'button',
       qrTokenUsed: viaQr ? token : null,
+      scheduleId: load.scheduleIdForPost,
+      unscheduled,
+      checklistResponses: unscheduled && reason.trim() ? { reason: reason.trim() } : undefined,
       geo,
     });
     setSubmitting(false);
@@ -117,13 +129,14 @@ export default function CheckinFormScreen() {
               {post.address}
             </Text>
           ) : null}
-          <View className="mt-3 flex-row gap-2">
+          <View className="mt-3 flex-row flex-wrap gap-2">
             <Badge label={SERVICE_TYPE_LABEL[post.service_type] ?? post.service_type} />
             {viaQr ? (
               <Badge label="QR confirmado" tone="ok" />
             ) : (
               <Badge label="Sem QR" tone="warn" />
             )}
+            {unscheduled ? <Badge label="Fora da escala" tone="warn" /> : null}
           </View>
         </View>
 
@@ -138,6 +151,24 @@ export default function CheckinFormScreen() {
               : ' Como nao houve QR, o evento fica marcado para conferencia do supervisor.'}
           </Text>
         </View>
+
+        {unscheduled ? (
+          <View className="mt-4 gap-2">
+            <Text className="text-sm font-semibold text-white">Motivo da troca (opcional)</Text>
+            <Text className="text-xs text-steel-400">
+              Este posto nao esta na sua escala de hoje. Um motivo simples ajuda o monitoramento.
+            </Text>
+            <TextInput
+              value={reason}
+              onChangeText={setReason}
+              placeholder="Ex: troca de ultima hora com outro colega..."
+              placeholderTextColor="#5b6571"
+              multiline
+              className="mt-1 min-h-16 rounded-md border border-steel-700 bg-brand-800 p-3 text-base text-white"
+              selectionColor="#94a1b7"
+            />
+          </View>
+        ) : null}
 
         <View className="mt-auto gap-3">
           <Pressable

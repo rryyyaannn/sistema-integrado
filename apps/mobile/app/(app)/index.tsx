@@ -165,14 +165,27 @@ export default function HomeScreen() {
 }
 
 function PlantaoAtivo({ plantao }: { plantao: ActivePlantao }) {
+  const awaitingRelief = !!plantao.preCheckoutAt;
   return (
     <View className="gap-5">
       {/* Status do plantao */}
-      <View className="rounded-xl border border-emerald-800/40 bg-emerald-500/10 p-5">
+      <View
+        className={`rounded-xl border p-5 ${
+          awaitingRelief
+            ? 'border-amber-700/40 bg-amber-500/10'
+            : 'border-emerald-800/40 bg-emerald-500/10'
+        }`}
+      >
         <View className="flex-row items-center gap-2">
-          <View className="h-2 w-2 rounded-full bg-emerald-400" />
-          <Text className="text-[10px] font-semibold uppercase tracking-[3px] text-emerald-300">
-            Plantao ativo
+          <View
+            className={`h-2 w-2 rounded-full ${awaitingRelief ? 'bg-amber-400' : 'bg-emerald-400'}`}
+          />
+          <Text
+            className={`text-[10px] font-semibold uppercase tracking-[3px] ${
+              awaitingRelief ? 'text-amber-300' : 'text-emerald-300'
+            }`}
+          >
+            {awaitingRelief ? 'Aguardando rendicao' : 'Plantao ativo'}
           </Text>
         </View>
         <Text className="mt-2 text-2xl font-bold tracking-tight text-white">
@@ -182,6 +195,11 @@ function PlantaoAtivo({ plantao }: { plantao: ActivePlantao }) {
         <Text className="mt-2 text-xs uppercase tracking-[2px] text-steel-400">
           Assumido as {timeOf(plantao.openedAt)}
         </Text>
+        {awaitingRelief && plantao.preCheckoutAt ? (
+          <Text className="mt-0.5 text-xs uppercase tracking-[2px] text-amber-300">
+            Monitoramento avisado as {timeOf(plantao.preCheckoutAt)}
+          </Text>
+        ) : null}
       </View>
 
       {/* Acoes do plantao */}

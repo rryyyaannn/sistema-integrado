@@ -19,8 +19,10 @@ export default function AssumirPostoScreen() {
     if (!userId) return;
     let active = true;
     void (async () => {
-      const scheduled = await getTodaySchedule(userId);
-      const allPosts = scheduled.length === 0 ? await listActivePosts() : [];
+      const [scheduled, allPosts] = await Promise.all([
+        getTodaySchedule(userId),
+        listActivePosts(),
+      ]);
       if (active) setData({ status: 'ready', scheduled, allPosts });
     })();
     return () => {
@@ -66,29 +68,52 @@ export default function AssumirPostoScreen() {
             <ActivityIndicator color="#ffffff" />
           </View>
         ) : (
-          <View className="gap-3">
-            <Text className="text-[10px] font-semibold uppercase tracking-[3px] text-steel-500">
-              {data.scheduled.length > 0 ? 'Sua escala de hoje — sem QR' : 'Assumir sem QR'}
-            </Text>
-
-            {data.scheduled.length > 0
-              ? data.scheduled.map((s) => (
+          <>
+            {data.scheduled.length > 0 ? (
+              <View className="gap-3">
+                <Text className="text-[10px] font-semibold uppercase tracking-[3px] text-steel-500">
+                  Sua escala de hoje — sem QR
+                </Text>
+                {data.scheduled.map((s) => (
                   <PostRow
                     key={s.scheduleId}
                     name={s.post.name}
                     detail={`${s.post.client_name}${s.shiftName ? ` · ${s.shiftName}` : ''}`}
                     onPress={() => assumeById(s.post.id)}
                   />
-                ))
-              : data.allPosts.map((p) => (
-                  <PostRow
-                    key={p.id}
-                    name={p.name}
-                    detail={p.client_name}
-                    onPress={() => assumeById(p.id)}
-                  />
                 ))}
-          </View>
+              </View>
+            ) : null}
+
+            {(() => {
+              const scheduledPostIds = new Set(data.scheduled.map((s) => s.post.id));
+              const otherPosts = data.allPosts.filter((p) => !scheduledPostIds.has(p.id));
+              if (data.scheduled.length > 0 && otherPosts.length === 0) return null;
+              return (
+                <View className="gap-3">
+                  <Text className="text-[10px] font-semibold uppercase tracking-[3px] text-steel-500">
+                    {data.scheduled.length > 0
+                      ? 'Outro posto — troca de ultima hora'
+                      : 'Assumir sem QR'}
+                  </Text>
+                  {data.scheduled.length > 0 ? (
+                    <Text className="text-xs text-steel-400">
+                      Fora da sua escala de hoje. O sistema aceita e pede um motivo simples para o
+                      supervisor conferir.
+                    </Text>
+                  ) : null}
+                  {(data.scheduled.length > 0 ? otherPosts : data.allPosts).map((p) => (
+                    <PostRow
+                      key={p.id}
+                      name={p.name}
+                      detail={p.client_name}
+                      onPress={() => assumeById(p.id)}
+                    />
+                  ))}
+                </View>
+              );
+            })()}
+          </>
         )}
 
         <Pressable

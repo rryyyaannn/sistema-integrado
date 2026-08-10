@@ -41,7 +41,7 @@ export type SubmitIncidentResult = { ok: true; id: string } | { ok: false; error
 
 /**
  * Registra uma ocorrencia. O botao de panico reusa esta tabela com is_panic=true
- * e severity='critical' (ADR-0007): o alerta e disparado pela Edge Function que
+ * e severity='critical' (ADR-0009): o alerta e disparado pela Edge Function que
  * observa incidents(is_panic, status='open'); o protocolo de resposta usa
  * incident_status_changes. Diferente do check-in, ocorrencia nao e enfileirada
  * offline no MVP — falha de rede retorna erro para o porteiro tentar de novo.

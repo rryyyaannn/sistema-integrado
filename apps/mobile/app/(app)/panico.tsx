@@ -10,7 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 /**
  * Botao de panico. Reusa incidents (is_panic=true, severity critical) — ver
- * ADR-0007. Sem formulario: uma confirmacao rapida evita disparo acidental, e o
+ * ADR-0009. Sem formulario: uma confirmacao rapida evita disparo acidental, e o
  * alerta e enviado imediatamente. O protocolo de resposta acontece no painel.
  */
 export default function PanicoScreen() {

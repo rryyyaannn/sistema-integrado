@@ -14,12 +14,14 @@ function todayLocal(): string {
 export type ActivePlantao = {
   sessionId: string;
   openedAt: string;
+  preCheckoutAt: string | null;
   post: PostByToken;
 };
 
 type ActivePlantaoRow = {
   id: string;
   opened_at: string;
+  pre_checkout_at: string | null;
   post: {
     id: string;
     name: string;
@@ -43,7 +45,7 @@ const PLANTAO_POST_EMBED =
 export async function getActivePlantao(userId: string): Promise<ActivePlantao | null> {
   const { data, error } = await supabase
     .from('shift_sessions')
-    .select(`id, opened_at, ${PLANTAO_POST_EMBED}`)
+    .select(`id, opened_at, pre_checkout_at, ${PLANTAO_POST_EMBED}`)
     .eq('user_id', userId)
     .eq('status', 'active')
     .order('opened_at', { ascending: false })
@@ -57,6 +59,7 @@ export async function getActivePlantao(userId: string): Promise<ActivePlantao | 
   return {
     sessionId: data.id,
     openedAt: data.opened_at,
+    preCheckoutAt: data.pre_checkout_at,
     post: {
       id: p.id,
       name: p.name,

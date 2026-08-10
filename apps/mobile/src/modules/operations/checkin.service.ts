@@ -103,7 +103,8 @@ export async function listActivePosts(): Promise<PostByToken[]> {
  */
 async function resolveChecklistTemplateId(
   post: PostByToken,
-  purpose: Enums<'checkin_purpose'>,
+  /** pre_checkout nao tem checklist proprio — nunca chamado com esse purpose. */
+  purpose: Exclude<Enums<'checkin_purpose'>, 'pre_checkout'>,
 ): Promise<string | null> {
   const { data: assignment } = await supabase
     .from('post_checklist_assignments')
@@ -135,6 +136,10 @@ export type SubmitCheckinInput = {
   qrTokenUsed?: string | null;
   geo?: CapturedGeo | null;
   checklistResponses?: Json;
+  /** Escala do dia que este check-in cumpre, quando existe uma. */
+  scheduleId?: string | null;
+  /** true quando o posto nao esta na escala do colaborador para hoje. */
+  unscheduled?: boolean;
 };
 
 export type SubmitCheckinResult =
@@ -148,7 +153,12 @@ export type SubmitCheckinResult =
  * (rede), enfileira para reenvio automatico.
  */
 export async function submitCheckin(input: SubmitCheckinInput): Promise<SubmitCheckinResult> {
-  const templateId = await resolveChecklistTemplateId(input.post, input.purpose);
+  // pre_checkout nao tem checklist proprio — e so um aviso, nao repete o
+  // formulario de entrada/periodico/saida.
+  const templateId =
+    input.purpose === 'pre_checkout'
+      ? null
+      : await resolveChecklistTemplateId(input.post, input.purpose);
 
   const payload = buildCheckinPayload({
     tenantId: input.post.tenant_id,
@@ -159,6 +169,8 @@ export async function submitCheckin(input: SubmitCheckinInput): Promise<SubmitCh
     checklistResponses: input.checklistResponses ?? {},
     validationMethod: input.validationMethod ?? 'button',
     qrTokenUsed: input.qrTokenUsed ?? null,
+    scheduleId: input.scheduleId ?? null,
+    unscheduled: input.unscheduled ?? false,
     latitude: input.geo?.latitude ?? null,
     longitude: input.geo?.longitude ?? null,
     geoAccuracyM: input.geo?.accuracyM ?? null,
